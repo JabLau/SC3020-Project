@@ -31,6 +31,7 @@ public:
     ~Record();
 	
 	void printRecord();
+    void setNextSpanAddress(int* nextSpanAddr, int nextSpanLen);
     void setRecordAddress(int blockNum, int offset);
     int minimumSpace();
 };

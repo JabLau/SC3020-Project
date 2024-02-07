@@ -15,14 +15,15 @@ DiskManager::~DiskManager() {
 	free(this->memStartAddress);
 }
 
-bool DiskManager::storeRecord(Record r) {
+int* DiskManager::storeRecord(Record r) {
 	// Check if any memory available
 	if (totalRecords >= maxRecords ) {
 		return false;
 	}
-
 	int* address;
+	int* rtnAddress;
 
+	// TODO: Redo Deleted Records Code
 	if (this->deletedRecords.empty() == false) {
 		int recordNoDeleted = this->deletedRecords.front();
 		this->deletedRecords.pop();
@@ -31,20 +32,44 @@ bool DiskManager::storeRecord(Record r) {
 
 		memcpy(address, &r, sizeof(Record));
 	}else {
+		int remainingSpace = this->blockSize - this->currBlockMemUsed;
+		// Check current block enough to store nextSpanPtr and nextSpanLen
+		if (remainingSpace < r.minimumSpace()) {
+			this->currBlock++;
+			this->currBlockMemUsed = 0;
+			remainingSpace = this->blockSize;
+		}
+
 		// Store Record
 		address = currBlockPointer();
-        r.setRecordAddress(this->currBlock, this->currBlockMemUsed);
-		memcpy(address, &r, sizeof(Record));
-		this->currBlockMemUsed += sizeof(Record);
+		rtnAddress = address;
 
-		// Check if in next block
-		if (this->currBlockMemUsed > this->blockSize) {
-			this->currBlockMemUsed -= this->blockSize;
+		int cpyLen = sizeof(Record);
+		bool splitRecord = false;
+		if (remainingSpace < cpyLen) {
+			cpyLen = remainingSpace;
+			splitRecord = true;
+		}
+
+		// If Splitting Record to 2 Blocks, need to store next block ptr
+		if (splitRecord) {
+			int* nextSpanAddr = address + cpyLen;
+			r.setNextSpanAddress(nextSpanAddr, (sizeof(Record) - cpyLen));
+		}
+		else {
+			r.setNextSpanAddress(nullptr, 0);
+		}
+
+		memcpy(address, &r, cpyLen);
+		if (splitRecord) {
 			this->currBlock++;
+			this->currBlockMemUsed = 0;
+			address = currBlockPointer();
+			memcpy(address, (&r + cpyLen), (sizeof(Record) - cpyLen));
 		}
 	}
 	this->totalRecords++;
-	return true;
+	return rtnAddress;
 }
 
 Record DiskManager::getRecord(int recordNo) {
@@ -55,6 +80,28 @@ Record DiskManager::getRecord(int recordNo) {
 	Record* recordPointer = (Record*)(this->memStartAddress + ((recordNo - 1) * sizeof(Record)));
 	Record rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
 	
+	return rtnRecord;
+}
+
+Record DiskManager::getRecord(int* recordAddr) {
+	int* nextSpanAddr;
+	int nextSpanLen;
+	memcpy(nextSpanAddr, recordAddr, sizeof(int*));
+	memcpy(&nextSpanLen, (recordAddr + sizeof(int*)), sizeof(int));
+
+	Record rtnRecord;
+	Record* recordPointer;
+	if (nextSpanAddr != nullptr) {
+		int currSize = (sizeof(Record) - nextSpanLen);
+		recordPointer = (Record*) malloc(sizeof(Record));
+		memcpy(recordPointer, recordAddr, currSize);
+		memcpy(recordPointer + currSize, nextSpanAddr, nextSpanLen);
+		rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
+	}
+	else {
+		recordPointer = (Record*)recordAddr;
+		rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
+	}
 	return rtnRecord;
 }
 

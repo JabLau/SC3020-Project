@@ -1,3 +1,15 @@
 *cmake-build-debug
 *.idea
 CMakeLists.txt
+.vs/ProjectSettings.json
+.vs/SC3020-Project/v16/.suo
+.vs/SC3020-Project/v16/Browse.VC.db
+.vs/SC3020-Project/v16/Browse.VC.db-shm
+.vs/SC3020-Project/v16/Browse.VC.db-wal
+.vs/SC3020-Project/v16/Browse.VC.opendb
+.vs/SC3020-Project/v16/ipch/AutoPCH/1dae308033122641/MAIN.ipch
+.vs/SC3020-Project/v16/ipch/AutoPCH/61e144a2a16e9b05/RECORD.ipch
+.vs/SC3020-Project/v16/ipch/AutoPCH/d79078d95b8240f2/DISKMANAGER.ipch
+.vs/SC3020-Project/v16/ipch/AutoPCH/ec24803a0b4df725/MAIN.ipch
+.vs/slnx.sqlite
+CppProperties.json

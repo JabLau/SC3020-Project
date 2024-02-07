@@ -21,8 +21,9 @@ public:
 	DiskManager(int blockSize, int totalSize);
 	~DiskManager();
 
-	bool storeRecord(Record r);
+	int* storeRecord(Record r);
 	Record getRecord(int recordNo);
+	Record getRecord(int*);
 	bool removeRecord(int recordNo);
 
 	int* currBlockPointer();

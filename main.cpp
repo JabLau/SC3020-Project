@@ -34,11 +34,13 @@ int main()
     FileManager fm = FileManager();
     fm.load_data(disk);
 
+    Record r = disk.getStartAddress();
+    r.printRecord();
     // Print record
-    for (int i = 1; i <= 10; i++) {
-        Record r = disk.getRecord(i);
-        r.printRecord();
-    }
+    //for (int i = 1; i <= 10; i++) {
+    //    Record r = disk.getRecord(i);
+    //    r.printRecord();
+    //}
 
     cout << disk.getStartAddress() << endl;
 

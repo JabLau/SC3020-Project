@@ -1,6 +1,7 @@
 #include "DiskManager.h"
 #include <cstdlib>
 #include "record.h"
+#include <iostream>
 
 using namespace std;
 
@@ -18,7 +19,7 @@ DiskManager::~DiskManager() {
 int* DiskManager::storeRecord(Record r) {
 	// Check if any memory available
 	if (totalRecords >= maxRecords ) {
-		return false;
+		return nullptr;
 	}
 	int* address;
 	int* rtnAddress;
@@ -46,6 +47,8 @@ int* DiskManager::storeRecord(Record r) {
 
 		int cpyLen = sizeof(Record);
 		bool splitRecord = false;
+        cout << "Remaining Space: " << remainingSpace << endl;
+        cout << "Copy Length: " << cpyLen << endl;
 		if (remainingSpace < cpyLen) {
 			cpyLen = remainingSpace;
 			splitRecord = true;
@@ -55,18 +58,23 @@ int* DiskManager::storeRecord(Record r) {
 		if (splitRecord) {
 			int* nextSpanAddr = address + cpyLen;
 			r.setNextSpanAddress(nextSpanAddr, (sizeof(Record) - cpyLen));
+            cout << "Next Span Address: " << nextSpanAddr << endl;
 		}
 		else {
 			r.setNextSpanAddress(nullptr, 0);
 		}
 
-		memcpy(address, &r, cpyLen);
-		if (splitRecord) {
-			this->currBlock++;
-			this->currBlockMemUsed = 0;
-			address = currBlockPointer();
-			memcpy(address, (&r + cpyLen), (sizeof(Record) - cpyLen));
-		}
+        memcpy(address, &r, cpyLen);
+        if (splitRecord) {
+            this->currBlock++;
+            this->currBlockMemUsed = 0;
+            address = currBlockPointer();
+            memcpy(address, (&r + cpyLen), (sizeof(Record) - cpyLen));
+            this->currBlockMemUsed = (sizeof(Record)-cpyLen);
+        }
+        else {
+            this->currBlockMemUsed += sizeof(Record);
+        }
 	}
 	this->totalRecords++;
 	return rtnAddress;
@@ -86,16 +94,18 @@ Record DiskManager::getRecord(int recordNo) {
 Record DiskManager::getRecord(int* recordAddr) {
 	int* nextSpanAddr;
 	int nextSpanLen;
-	memcpy(nextSpanAddr, recordAddr, sizeof(int*));
+	memcpy(&nextSpanAddr, recordAddr, sizeof(int*));
 	memcpy(&nextSpanLen, (recordAddr + sizeof(int*)), sizeof(int));
 
 	Record rtnRecord;
 	Record* recordPointer;
-	if (nextSpanAddr != nullptr) {
+
+    if (false){
+//	if (nextSpanAddr != nullptr) {
 		int currSize = (sizeof(Record) - nextSpanLen);
 		recordPointer = (Record*) malloc(sizeof(Record));
-		memcpy(recordPointer, recordAddr, currSize);
-		memcpy(recordPointer + currSize, nextSpanAddr, nextSpanLen);
+		memcpy(&recordPointer, recordAddr, currSize);
+		memcpy(&recordPointer + currSize, nextSpanAddr, nextSpanLen);
 		rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
 	}
 	else {

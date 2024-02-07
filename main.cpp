@@ -26,7 +26,8 @@ void printMem(int* addr, int size) {
 
 int main()
 {
-    int blockSize = 200;
+    cout << sizeof(Record) << endl;
+    int blockSize = 60;
     int totalMemSize = 250 * 1000000; //In MB
 
     DiskManager disk = DiskManager(blockSize, totalMemSize);
@@ -34,7 +35,8 @@ int main()
     FileManager fm = FileManager();
     fm.load_data(disk);
 
-    Record r = disk.getStartAddress();
+    int* addr = disk.getStartAddress();
+    Record r = disk.getRecord(addr);
     r.printRecord();
     // Print record
     //for (int i = 1; i <= 10; i++) {

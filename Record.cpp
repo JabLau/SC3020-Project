@@ -21,6 +21,15 @@ Record::Record(string tconst, string averageRating, string numVotes) {
     this->numVotes = stoi(numVotes); // 4 bytes
 }
 
+void Record::setRecordAddress(int blockNum, int offset) {
+    this->blockNum = blockNum;
+    this->offset = offset;
+}
+
+int Record::minimumSpace(){
+    return (sizeof(this->nextSpanPtr) + sizeof(this->nextSpanLen));
+}
+
 Record::~Record() {
 
 }

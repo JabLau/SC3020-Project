@@ -33,6 +33,7 @@ bool DiskManager::storeRecord(Record r) {
 	}else {
 		// Store Record
 		address = currBlockPointer();
+        r.setRecordAddress(this->currBlock, this->currBlockMemUsed);
 		memcpy(address, &r, sizeof(Record));
 		this->currBlockMemUsed += sizeof(Record);
 

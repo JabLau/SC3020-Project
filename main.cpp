@@ -1,6 +1,15 @@
 // Project1.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+// Spanned
+// Non-Sequential - Because id are not in order
+// Fixed format with fixed length
+// Block size = 200b
+// Total memory size = 250MB
+// Total number of blocks = 250MB / 200b = 1,250,000
+
+
+
 #include <iostream>
 #include "Record.h"
 #include "DiskManager.h"
@@ -30,6 +39,8 @@ int main()
         Record r = disk.getRecord(i);
         r.printRecord();
     }
+
+    cout << disk.getStartAddress() << endl;
 
 //    int recordSize = sizeof(Record);
 //    int* startAddr = disk.currBlockPointer();

@@ -1,84 +1,59 @@
+// Project1.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <sstream>
-#include <string>
-#include <cstring>
-#include <cstdint>
+#include "Record.h"
+#include "DiskManager.h"
+#include "FileManager.h"
 
-// Str split function
-std::vector<std::string> strSplitByDelim (const std::string &s, char delim) {
-    std::vector<std::string> result;
-    std::stringstream ss (s);
-    std::string item;
+using namespace std;
 
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
-
-    return result;
+void printMem(int* addr, int size) {
+    int i;
+    for (i = 0; i < size; i++)
+        printf("%08x ", addr[i]);
+    printf("\n\n");
 }
 
-// Record class
-// the disk capacity could be 100 - 500 MB
-class Record {
-public:
-    // Atrtibutes
-    char movieId[11];
-    //std::string movieId; //alphanumeric unique identifier of the title
-    float avgRating; //weighted average of all the individual user ratings
-    int numVotes; // number of votes the title has received
+int main()
+{
+    int blockSize = 200;
+    int totalMemSize = 250 * 1000000; //In MB
 
-    // Constructor
-    // Expected all arguments to be str type
-    Record(std::string tconst, std::string averageRating, std::string numVotes) {
-        // Convert string to char array
-        strcpy(this->movieId, tconst.c_str()); // 11 bytes, 10 chars + null terminator
-        // convert string to float
-        this->avgRating = std::stof(averageRating); // 4 bytes
-        // convert string to int
-        this->numVotes = std::stoi(numVotes); // 4 bytes
-    }
-};
+    DiskManager disk = DiskManager(blockSize, totalMemSize);
+    // Call file manager
+    FileManager fm = FileManager();
+    fm.load_data(disk);
 
-
-int main() {
-    // Load data.tsv file into
-    std::ifstream infile("../data.tsv");
-
-    // Line-based parsing, using string streams
-    // temp variable to store the line
-    std::string line;
-    // temp var for line num
-    unsigned int line_num = 0;
-    // Read the file line by line
-    while ( std::getline(infile, line) )
-    {
-        // Process each line
-        // Delimiter is tab
-        // First line is header, skip it
-        if (line_num == 0) {
-            std::cout << "Header: " << line << std::endl;
-            line_num++;
-            continue;
-        }
-
-        // For every line, create a record object
-        // Split line by delim into array of strings
-        std::vector<std::string> col = strSplitByDelim (line, '\t');
-        // Create record object
-        Record record(col[0], col[1], col[2]);
-
-        // Increment line number
-        line_num++;
-
-        // Break after 10 lines
-        if (line_num > 10) {
-            break;
-        }
+    // Print record
+    for (int i = 1; i <= 10; i++) {
+        Record r = disk.getRecord(i);
+        r.printRecord();
     }
 
-    return 0;
+//    int recordSize = sizeof(Record);
+//    int* startAddr = disk.currBlockPointer();
+//    int i;
+//    printMem(startAddr, recordSize);
+//    disk.storeRecord(Record("TestTest", 1.5, 32));
+//    printMem(startAddr, recordSize);
+//    disk.storeRecord(Record("Bobby", 1.5, 100));
+//    printMem(startAddr, 92);
+//    disk.removeRecord(2);
+//    disk.storeRecord(Record("HiAdrian", 1.5, 100));
+//    Record r = disk.getRecord(1);
+//    r.printRecord();
+//    r = disk.getRecord(2);
+//    r.printRecord();
 }
 
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
 
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

@@ -22,7 +22,5 @@ public:
     ~Record();
 	
 	void printRecord();
-
-    void setNextSpanAddress(int *nextSpanPtr, int nextSpanLen);
 };
 

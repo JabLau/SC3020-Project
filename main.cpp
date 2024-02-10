@@ -41,7 +41,7 @@ int main()
     // Print start memory
     cout << "Start memory: " << disk.memStartAddress << endl;
     // Print memory contents of the record after storing
-    for (int i = 0; i < sizeof(Record); i++) {
+    for (int i = 0; i < blockSize; i++) {
         std::cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << std::endl;
     }
 

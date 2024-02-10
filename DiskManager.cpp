@@ -122,10 +122,9 @@ void DiskManager::printAllRecords() {
                     memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
                     // Print
                     r.printRecord();
-                    // Deallocate memory
 
                     // Skip to the next record
-                    j += 5 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                    j += sizeof(Record)/4 - 1;  // Subtract 1 to offset the automatic increment in the loop
                 }
             }
         }

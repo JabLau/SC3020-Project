@@ -2,18 +2,56 @@
 #include <cstdlib>
 #include "record.h"
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
 DiskManager::DiskManager(int blockSize, int totalSize) {
+    this->blockSize = blockSize;
+    this->totalSize = totalSize;
+    this->totalNumBlocks = totalSize / blockSize;
+    this->maxRecords = totalSize / sizeof(Record);
+
+    // Allocate whole memory space simulating main memory blocks
 	this->memStartAddress = (int*)malloc(totalSize);
-	this->totalBlocks = totalSize / blockSize;
-	this->blockSize = blockSize;
-	this->maxRecords = totalSize / sizeof(Record);
+    // Set malloc'd memory to -1
+    memset(this->memStartAddress, -1, totalSize);
+
+    // Array to keep track of free space in each block in bytes
+    this->freeSpacePerBlock = (int*)malloc(this->totalNumBlocks * sizeof(int));
+    // Set all blocks to be free initially
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+        this->freeSpacePerBlock[i] = this->blockSize;
+    }
 }
 
+// Destructor
 DiskManager::~DiskManager() {
 	free(this->memStartAddress);
+}
+
+// Method to calculate block starting address by block id
+int* DiskManager::getBlockAddress(int blockId) {
+        return this->memStartAddress + (blockId * this->blockSize);
+    }
+
+// Method to get next available memory address
+addressInfo DiskManager::getNextAvailableAddress() {
+    // Loop through freeSpacePerBlock array to find the first block with at least 1 byte of free space
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+            if (this->freeSpacePerBlock[i] >= 1) {
+                // Iterate through block, finding the address of the first byte that is -1
+                for (int j = 0; j < this->blockSize; j++) {
+                    if (*(this->getBlockAddress(i) + j) == -1) {
+                        // Return address struct addressinfo
+                        return {i, j};
+
+                    }
+                }
+            }
+        }
+    // If no available address, return nullptr
+    return {-1, -1};
 }
 
 int* DiskManager::storeRecord(Record r) {
@@ -21,109 +59,75 @@ int* DiskManager::storeRecord(Record r) {
 	if (totalRecords >= maxRecords ) {
 		return nullptr;
 	}
-	int* address;
-	int* rtnAddress;
 
-	// TODO: Redo Deleted Records Code
-	if (this->deletedRecords.empty() == false) {
-		int recordNoDeleted = this->deletedRecords.front();
-		this->deletedRecords.pop();
+    // Find the next available address
+    addressInfo nextAvailableAddress = getNextAvailableAddress();
+    // Print next available address
+    cout << "Found empty slot at: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
 
-		address = this->memStartAddress + ((recordNoDeleted - 1) * sizeof(Record));
+    // Case 1: Address is -1 -1, no available space
+    if (nextAvailableAddress.blockId == -1 && nextAvailableAddress.offset == -1) {
+        // Print out error message and raise exception
+        cout << "No available space" << endl;
+        return nullptr;
+    }
 
-		memcpy(address, &r, sizeof(Record));
-	}else {
-		int remainingSpace = this->blockSize - this->currBlockMemUsed;
-		// Check current block enough to store nextSpanPtr and nextSpanLen
-		if (remainingSpace < r.minimumSpace()) {
-			this->currBlock++;
-			this->currBlockMemUsed = 0;
-			remainingSpace = this->blockSize;
-		}
+    // Case 2: Address has the space to accommodate the whole record, no spanning needed
+    if (blockSize - ((getBlockAddress(nextAvailableAddress.blockId)+ nextAvailableAddress.offset)- getBlockAddress(nextAvailableAddress.blockId)) >= sizeof(Record)) {
+        // Enough space to store the record without spanning
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeof(Record));
+        // Update array to keep track of free space in each block in bytes
+        this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeof(Record);
+    }
+    // Case 3: Block only has partial space to accommodate the header and some of the record, spanning needed
+    else {
+        // Size left on current block = freeSpacePerBlock[nextAvailableAddress.blockId]
+        int sizeLeft = freeSpacePerBlock[nextAvailableAddress.blockId];
+        // Calculate the spillOverSize needed to store the record for next block
+        int spillOverSize = sizeof(Record) - sizeLeft;
 
-		// Store Record
-		address = currBlockPointer();
-		rtnAddress = address;
+        // Copy first half of the record to the original block
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeLeft);
+        // Update array to keep track of free space in each block in bytes
+        this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeLeft;
 
-		int cpyLen = sizeof(Record);
-		bool splitRecord = false;
-        cout << "Remaining Space: " << remainingSpace << endl;
-        cout << "Copy Length: " << cpyLen << endl;
-		if (remainingSpace < cpyLen) {
-			cpyLen = remainingSpace;
-			splitRecord = true;
-		}
+        // Copy spillOverSize record to the next available block
+        // Since assuming fixed sized blocks, the next free space will always be the next block
+        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), &r, spillOverSize);
+        // Update array to keep track of free space in each block in bytes
+        this->freeSpacePerBlock[nextAvailableAddress.blockId+1] -= spillOverSize;
+    }
 
-		// If Splitting Record to 2 Blocks, need to store next block ptr
-		if (splitRecord) {
-			int* nextSpanAddr = address + cpyLen;
-			r.setNextSpanAddress(nextSpanAddr, (sizeof(Record) - cpyLen));
-            cout << "Next Span Address: " << nextSpanAddr << endl;
-		}
-		else {
-			r.setNextSpanAddress(nullptr, 0);
-		}
+    // Print relative address and return the absolute address of the record
+    cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
+    return getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset;
+}
 
-        memcpy(address, &r, cpyLen);
-        if (splitRecord) {
-            this->currBlock++;
-            this->currBlockMemUsed = 0;
-            address = currBlockPointer();
-            memcpy(address, (&r + cpyLen), (sizeof(Record) - cpyLen));
-            this->currBlockMemUsed = (sizeof(Record)-cpyLen);
+// Sequentially read the records from the memory
+void DiskManager::printAllRecords() {
+    // Loop through blocks that have at least 1 record
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+        // If block has at least 1 record, ignoring spillover records (Read from original block only)
+        if (this->freeSpacePerBlock[i] <= this->blockSize - sizeof(Record)) {
+            // Loop through the block
+            for (int j = 0; j < this->blockSize; j++) {
+                // print j
+                // If the byte is not -1, it is the start of a record
+                if (*(this->getBlockAddress(i) + j) != -1) {
+                    // Read record
+                    Record r;
+                    // Case 1: Record is not spanned, just read normally
+                    // Read the record and print
+                    // Copy the bytes to a Record object
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
+                    // Print
+                    r.printRecord();
+                    // Deallocate memory
+
+                    // Skip to the next record
+                    j += 5 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                }
+            }
         }
-        else {
-            this->currBlockMemUsed += sizeof(Record);
-        }
-	}
-	this->totalRecords++;
-	return rtnAddress;
-}
-
-Record DiskManager::getRecord(int recordNo) {
-	if (recordNo > totalRecords) {
-		return Record();
-	}
-
-	Record* recordPointer = (Record*)(this->memStartAddress + ((recordNo - 1) * sizeof(Record)));
-	Record rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
-	
-	return rtnRecord;
-}
-
-Record DiskManager::getRecord(int* recordAddr) {
-	int* nextSpanAddr;
-	int nextSpanLen;
-	memcpy(&nextSpanAddr, recordAddr, sizeof(int*));
-	memcpy(&nextSpanLen, (recordAddr + sizeof(int*)), sizeof(int));
-
-	Record rtnRecord;
-	Record* recordPointer;
-
-    if (false){
-//	if (nextSpanAddr != nullptr) {
-		int currSize = (sizeof(Record) - nextSpanLen);
-		recordPointer = (Record*) malloc(sizeof(Record));
-		memcpy(&recordPointer, recordAddr, currSize);
-		memcpy(&recordPointer + currSize, nextSpanAddr, nextSpanLen);
-		rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
-	}
-	else {
-		recordPointer = (Record*)recordAddr;
-		rtnRecord = Record(recordPointer->movieId, recordPointer->avgRating, recordPointer->numVotes);
-	}
-	return rtnRecord;
-}
-
-bool DiskManager::removeRecord(int recordNo) {
-	this->deletedRecords.push(recordNo);
-	return true;
-}
-
-int* DiskManager::currBlockPointer() {
-	return this->memStartAddress + this->currBlock * this->blockSize + this->currBlockMemUsed;
-}
-
-int* DiskManager::getStartAddress() {
-	return this->memStartAddress;
+    }
 }

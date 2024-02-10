@@ -9,7 +9,6 @@
 // Total number of blocks = 250MB / 200b = 1,250,000
 
 
-
 #include <iostream>
 #include "Record.h"
 #include "DiskManager.h"
@@ -26,25 +25,39 @@ void printMem(int* addr, int size) {
 
 int main()
 {
-    cout << sizeof(Record) << endl;
-    int blockSize = 60;
-    int totalMemSize = 250 * 1000000; //In MB
+    // Settings
+    int blockSize = 200; // in bytes
+    int totalMemSize = 250 * 1000000; //in MB
 
+    // Allocate space simulating main memory
     DiskManager disk = DiskManager(blockSize, totalMemSize);
-    // Call file manager
+
+    // Read file and populate allocated area
     FileManager fm = FileManager();
     fm.load_data(disk);
 
-    int* addr = disk.getStartAddress();
-    Record r = disk.getRecord(addr);
-    r.printRecord();
+    // Loop and print each memory byte
+    int* startAddr = disk.memStartAddress;
+    // Print start memory
+    cout << "Start memory: " << disk.memStartAddress << endl;
+    // Print memory contents of the record after storing
+    for (int i = 0; i < sizeof(Record); i++) {
+        std::cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << std::endl;
+    }
+
+    // Read all records
+    disk.printAllRecords();
+
+//    int* addr = disk.getStartAddress();
+//    Record r = disk.getRecord(addr);
+//    r.printRecord();
     // Print record
     //for (int i = 1; i <= 10; i++) {
     //    Record r = disk.getRecord(i);
     //    r.printRecord();
     //}
 
-    cout << disk.getStartAddress() << endl;
+//    cout << disk.getStartAddress() << endl;
 
 //    int recordSize = sizeof(Record);
 //    int* startAddr = disk.currBlockPointer();

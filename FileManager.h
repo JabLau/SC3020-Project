@@ -13,7 +13,7 @@ using namespace std;
 class FileManager {
 public:
     vector<string> strSplitByDelim (const string &s, char delim);
-    bool load_data(DiskManager &disk);
+    void load_data(DiskManager &disk);
 };
 
 

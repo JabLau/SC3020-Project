@@ -25,7 +25,7 @@ vector<string> FileManager::strSplitByDelim(const string &s, char delim) {
 }
 
 
-bool FileManager::load_data(DiskManager &disk) {
+void FileManager::load_data(DiskManager &disk) {
     // Load data.tsv file into
     ifstream infile("../data.tsv");
 
@@ -41,14 +41,13 @@ bool FileManager::load_data(DiskManager &disk) {
         // Delimiter is tab
         // First line is header, skip it
         if (line_num == 0) {
-            cout << "Header: " << line << endl;
             line_num++;
             continue;
         }
 
-        // For every line, create a record object
         // Split line by delim into array of strings
         vector<string> col = strSplitByDelim (line, '\t');
+        // For every line, create a record object
         // Store record in disk
         disk.storeRecord(Record(col[0], col[1], col[2]));
 
@@ -60,8 +59,6 @@ bool FileManager::load_data(DiskManager &disk) {
             break;
         }
     }
-
-    return 0;
 }
 
 

@@ -2,17 +2,9 @@
 #include <iostream>
 #include <cstring>
 
-Record::Record() {
-
-}
-
-Record::Record(string tconst, float avgRating, unsigned int numVotes) {
-	strcpy(this->movieId, tconst.c_str());
-	this->avgRating = avgRating;
-	this->numVotes = numVotes;
-}
 
 Record::Record(string tconst, string averageRating, string numVotes) {
+    // Load data from file
     // Convert string to char array
     strcpy(this->movieId, tconst.c_str()); // 11 bytes, 10 chars + null terminator
     // convert string to float
@@ -21,18 +13,7 @@ Record::Record(string tconst, string averageRating, string numVotes) {
     this->numVotes = stoi(numVotes); // 4 bytes
 }
 
-void Record::setNextSpanAddress(int* nextSpanAddr, int nextSpanLen) {
-    this->nextSpanPtr = nextSpanAddr;
-    this->nextSpanLen = nextSpanLen;
-}
-
-//void Record::setRecordAddress(int blockNum, int offset) {
-//    this->blockNum = blockNum;
-//    this->offset = offset;
-//}
-
-int Record::minimumSpace(){
-    return (sizeof(this->nextSpanPtr) + sizeof(this->nextSpanLen));
+Record::Record() {
 }
 
 Record::~Record() {
@@ -40,5 +21,6 @@ Record::~Record() {
 }
 
 void Record::printRecord() {
-	cout << "tconst:" << this->movieId << "|avgRating:" << this->avgRating << "|numVotes:" << this->numVotes << endl;
+    // Print record one line
+    std::cout << "Movie ID: " << this->movieId << ", Average Rating: " << this->avgRating << ", Number of Votes: " << this->numVotes << std::endl;
 }

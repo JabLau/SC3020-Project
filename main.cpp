@@ -13,6 +13,7 @@
 #include "Record.h"
 #include "DiskManager.h"
 #include "FileManager.h"
+#include "Node.h"
 
 using namespace std;
 
@@ -36,14 +37,26 @@ int main()
     FileManager fm = FileManager();
     fm.load_data(disk);
 
+    Record r1 = Record("123", "2.5", "100");
+    Record r2 = Record("456", "2.5", "105");
+    Record r3 = Record("789", "2.5", "99");
+    int* addr1 = disk.storeRecord(r1);
+    int* addr2 = disk.storeRecord(r2);
+    int* addr3 = disk.storeRecord(r3);
+    Node n = Node(3);
+    n.addKey(r1.numVotes, addr1);
+    n.addKey(r2.numVotes, addr2);
+    n.addKey(r3.numVotes, addr3);
+    n.printNode();
+
     // Loop and print each memory byte
     int* startAddr = disk.memStartAddress;
     // Print start memory
     cout << "Start memory: " << disk.memStartAddress << endl;
     // Print memory contents of the record after storing
-    for (int i = 0; i < blockSize; i++) {
-        std::cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << std::endl;
-    }
+    // for (int i = 0; i < blockSize; i++) {
+    //     cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << endl;
+    // }
 
     // Read all records
     disk.printAllRecords();

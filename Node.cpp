@@ -54,6 +54,14 @@ bool Node::addKey(int key, int *address) {
     return true;
 }
 
+bool Node::insertKeySorted(int key, int *address) {
+    // Value is already sorted, no need to check previous values
+    this->keys[this->currKeyCount] = key;
+    this->pointers[this->currKeyCount] = address;
+    this->currKeyCount++;
+    return true;
+}
+
 void Node::isLeafNode(bool isLeaf) {
     this->leafNode = isLeaf;
 }

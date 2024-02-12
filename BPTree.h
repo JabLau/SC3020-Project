@@ -7,6 +7,11 @@
 
 #include "Node.h"
 
+struct tempStruct{
+    int key;
+    int* address;
+};
+
 class BPTree {
 public:
     int maxKeys; //Keys per node
@@ -15,7 +20,9 @@ public:
     BPTree(int maxKeys);
 
     bool insertKey(int key, int* address);
-};
+    bool bulkLoad(tempStruct *list);
 
+    void printTree();
+};
 
 #endif //SC3020_PROJECT_BPTREE_H

@@ -38,22 +38,39 @@ int main()
     FileManager fm = FileManager();
     fm.load_data(disk);
 
-    Record r1 = Record("123", "2.5", "100");
-    Record r2 = Record("456", "2.5", "105");
-    Record r3 = Record("789", "2.5", "99");
+    Record r1 = Record("123", "2.5", "99");
+    Record r2 = Record("456", "2.5", "100");
+    Record r3 = Record("789", "2.5", "101");
+    Record r4 = Record("111", "2.5", "102");
+    Record r5 = Record("112", "2.5", "103");
     int* addr1 = disk.storeRecord(r1);
     int* addr2 = disk.storeRecord(r2);
     int* addr3 = disk.storeRecord(r3);
-    Node n = Node(3);
-    n.addKey(r1.numVotes, addr1);
-    n.addKey(r2.numVotes, addr2);
-    n.addKey(r3.numVotes, addr3);
-    n.printNode();
+    int* addr4 = disk.storeRecord(r4);
+    int* addr5 = disk.storeRecord(r5);
+//    Node tempNode = Node(3);
+//    tempNode.addKey(r1.numVotes, addr1);
+//    tempNode.addKey(r2.numVotes, addr2);
+//    tempNode.addKey(r3.numVotes, addr3);
+//    tempNode.printNode();
 
     BPTree bt = BPTree(3);
-    bt.insertKey(r1.numVotes,addr1);
-    bt.insertKey(r2.numVotes,addr2);
-    bt.insertKey(r3.numVotes,addr3);
+    tempStruct list[5];
+    list[0].key = r1.numVotes;
+    list[0].address = addr1;
+    list[1].key = r2.numVotes;
+    list[1].address = addr2;
+    list[2].key = r3.numVotes;
+    list[2].address = addr3;
+    list[3].key = r4.numVotes;
+    list[3].address = addr4;
+    list[4].key = r5.numVotes;
+    list[4].address = addr5;
+    bt.bulkLoad(list);
+    bt.printTree();
+//    bt.insertKey(r1.numVotes,addr1);
+//    bt.insertKey(r2.numVotes,addr2);
+//    bt.insertKey(r3.numVotes,addr3);
     // Loop and print each memory byte
     int* startAddr = disk.memStartAddress;
     // Print start memory

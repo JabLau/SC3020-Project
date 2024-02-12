@@ -19,6 +19,7 @@ public:
     ~Node();
     bool isFull();
     bool addKey(int key, int* address);
+    bool insertKeySorted(int key, int* address);
     void printNode();
 
     // Set if leaf node

@@ -55,10 +55,10 @@ addressInfo DiskManager::getNextAvailableAddress() {
     return {-1, -1};
 }
 
-int* DiskManager::storeRecord(Record r) {
+addressInfo DiskManager::storeRecord(Record r) {
 	// Check if any memory available
 	if (totalRecords >= maxRecords ) {
-		return nullptr;
+		return {-1, -1};
 	}
 
     // Find the next available address
@@ -68,7 +68,7 @@ int* DiskManager::storeRecord(Record r) {
     if (nextAvailableAddress.blockId == -1 && nextAvailableAddress.offset == -1) {
         // Print out error message and raise exception
         cout << "No available space" << endl;
-        return nullptr;
+        return {-1, -1};
     }
 
     // Case 2: Address has the space to accommodate the whole record, no spanning needed
@@ -98,8 +98,8 @@ int* DiskManager::storeRecord(Record r) {
     }
 
     // Print relative address and return the absolute address of the record
-    cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
-    return getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset;
+    // cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
+    return {nextAvailableAddress.blockId, nextAvailableAddress.offset};
 }
 
 // Sequentially read the records from the memory

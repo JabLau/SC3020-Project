@@ -26,7 +26,7 @@ public:
 	DiskManager(int blockSize, int totalSize);
 	~DiskManager();
 
-	int* storeRecord(Record r);
+	addressInfo storeRecord(Record r);
     int *getBlockAddress(int blockId);
     void printAllRecords();
     addressInfo getNextAvailableAddress();

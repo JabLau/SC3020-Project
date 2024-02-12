@@ -1,10 +1,7 @@
-#include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
 #include <string>
-#include <cstring>
-#include <cstdint>
 #include "FileManager.h"
 #include "Record.h"
 #include "DiskManager.h"
@@ -23,7 +20,6 @@ vector<string> FileManager::strSplitByDelim(const string &s, char delim) {
 
     return result;
 }
-
 
 void FileManager::load_data(DiskManager &disk) {
     // Load data.tsv file into
@@ -47,17 +43,26 @@ void FileManager::load_data(DiskManager &disk) {
 
         // Split line by delim into array of strings
         vector<string> col = strSplitByDelim (line, '\t');
-        // For every line, create a record object
+
         // Store record in disk
-        disk.storeRecord(Record(col[0], col[1], col[2]));
+        addressInfo addr = disk.storeRecord(Record(col[0], col[1], col[2]));
+        // If record is stored successfully, increment totalRecords
+        if (addr.blockId != -1 && addr.offset != -1){
+            recordCount++;
+        }
+
+        // Store the highest recordId
+        if (addr.blockId+1 > blockCount) {
+            blockCount = addr.blockId+1;
+        }
 
         // Increment line number
         line_num++;
 
-        // Break after 10 lines
-        if (line_num > 10) {
-            break;
-        }
+//        // Break after 10 lines
+//        if (line_num > 10) {
+//            break;
+//        }
     }
 }
 

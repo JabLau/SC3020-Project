@@ -25,6 +25,34 @@ void printMem(int* addr, int size) {
     printf("\n\n");
 }
 
+void experiment_1(DiskManager disk){
+    // Load the data from disk
+    FileManager fm = FileManager();
+    fm.load_data(disk);
+
+    int dashLength = 20;
+    // Print leading dashes
+    for (int i = 0; i < dashLength; ++i) {
+        std::cout << "-";
+    }
+    std::cout << " Experiment 1 ";
+    // Print trailing dashes
+    for (int i = 0; i < dashLength; ++i) {
+        std::cout << "-";
+    }
+    std::cout << std::endl;
+
+    //• the number of records;
+    cout << "The number of records: " << fm.recordCount << endl;
+    //• the size of a record;
+    cout << "The size of a record: " << sizeof(Record) << endl;
+    //• the number of records stored in a block;
+    cout << "The number of records stored in a block: " << disk.blockSize / sizeof(Record) << endl;
+    //• the number of blocks for storing the data;
+    cout << "The number of blocks for storing the data: " << fm.blockCount << endl;
+
+}
+
 int main()
 {
     // Settings
@@ -34,37 +62,37 @@ int main()
     // Allocate space simulating main memory
     DiskManager disk = DiskManager(blockSize, totalMemSize);
 
-    // Read file and populate allocated area
-    FileManager fm = FileManager();
-    fm.load_data(disk);
+    // Experiment 1
+    experiment_1(disk);
 
-    Record r1 = Record("123", "2.5", "100");
-    Record r2 = Record("456", "2.5", "105");
-    Record r3 = Record("789", "2.5", "99");
-    int* addr1 = disk.storeRecord(r1);
-    int* addr2 = disk.storeRecord(r2);
-    int* addr3 = disk.storeRecord(r3);
-    Node n = Node(3);
-    n.addKey(r1.numVotes, addr1);
-    n.addKey(r2.numVotes, addr2);
-    n.addKey(r3.numVotes, addr3);
-    n.printNode();
+//    // Loop and print each memory byte
+//    int* startAddr = disk.memStartAddress;
+//    // Print start memory
+//    cout << "Start memory: " << disk.memStartAddress << endl;
+//    for (int i = 0; i < blockSize; i++) {
+//        cout << "Address: " << static_cast<void*>(startAddr + i) << ", Value: " << static_cast<unsigned int>(*(startAddr + i)) << endl;
+//    }
+//
+//    // Read all records
+//    disk.printAllRecords();
 
-    BPTree bt = BPTree(3);
-    bt.insertKey(r1.numVotes,addr1);
-    bt.insertKey(r2.numVotes,addr2);
-    bt.insertKey(r3.numVotes,addr3);
-    // Loop and print each memory byte
-    int* startAddr = disk.memStartAddress;
-    // Print start memory
-    cout << "Start memory: " << disk.memStartAddress << endl;
-    // Print memory contents of the record after storing
-    // for (int i = 0; i < blockSize; i++) {
-    //     cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << endl;
-    // }
-
-    // Read all records
-    disk.printAllRecords();
+    // Experiment 2 (TODO)
+//    Record r1 = Record("123", "2.5", "100");
+//    Record r2 = Record("456", "2.5", "105");
+//    Record r3 = Record("789", "2.5", "99");
+//    int* addr1 = disk.storeRecord(r1);
+//    int* addr2 = disk.storeRecord(r2);
+//    int* addr3 = disk.storeRecord(r3);
+//    Node n = Node(3);
+//    n.addKey(r1.numVotes, addr1);
+//    n.addKey(r2.numVotes, addr2);
+//    n.addKey(r3.numVotes, addr3);
+//    n.printNode();
+//
+//    BPTree bt = BPTree(3);
+//    bt.insertKey(r1.numVotes,addr1);
+//    bt.insertKey(r2.numVotes,addr2);
+//    bt.insertKey(r3.numVotes,addr3);
 
 //    int* addr = disk.getStartAddress();
 //    Record r = disk.getRecord(addr);

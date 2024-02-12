@@ -32,7 +32,8 @@ DiskManager::~DiskManager() {
 
 // Method to calculate block starting address by block id
 int* DiskManager::getBlockAddress(int blockId) {
-        return this->memStartAddress + (blockId * this->blockSize);
+    // 4 byte addressible memory
+    return this->memStartAddress + (blockId * (this->blockSize/4));
     }
 
 // Method to get next available memory address
@@ -41,9 +42,9 @@ addressInfo DiskManager::getNextAvailableAddress() {
     for (int i = 0; i < this->totalNumBlocks; i++) {
             if (this->freeSpacePerBlock[i] >= 1) {
                 // Iterate through block, finding the address of the first byte that is -1
-                for (int j = 0; j < this->blockSize; j++) {
+                for (int j = 0; j < this->blockSize/4; j++) {
                     if (*(this->getBlockAddress(i) + j) == -1) {
-                        // Return address struct addressinfo
+                        // Return address struct addressinfo, offset is in 4 byte addressible memory
                         return {i, j};
 
                     }
@@ -62,8 +63,6 @@ int* DiskManager::storeRecord(Record r) {
 
     // Find the next available address
     addressInfo nextAvailableAddress = getNextAvailableAddress();
-    // Print next available address
-    cout << "Found empty slot at: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
 
     // Case 1: Address is -1 -1, no available space
     if (nextAvailableAddress.blockId == -1 && nextAvailableAddress.offset == -1) {
@@ -82,18 +81,18 @@ int* DiskManager::storeRecord(Record r) {
     // Case 3: Block only has partial space to accommodate the header and some of the record, spanning needed
     else {
         // Size left on current block = freeSpacePerBlock[nextAvailableAddress.blockId]
-        int sizeLeft = freeSpacePerBlock[nextAvailableAddress.blockId];
+        int sizeLeft = freeSpacePerBlock[nextAvailableAddress.blockId]; // in bytes
         // Calculate the spillOverSize needed to store the record for next block
-        int spillOverSize = sizeof(Record) - sizeLeft;
+        int spillOverSize = sizeof(Record) - sizeLeft; // in bytes
 
         // Copy first half of the record to the original block
+        cout << "Size left: " << sizeLeft << ", Spill over size: " << spillOverSize << endl;
         memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeLeft);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeLeft;
 
-        // Copy spillOverSize record to the next available block
-        // Since assuming fixed sized blocks, the next free space will always be the next block
-        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), &r, spillOverSize);
+        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), reinterpret_cast<char*>(&r) + sizeLeft, spillOverSize);
+        // memcpy(getBlockAddress(nextAvailableAddress.blockId+1), (&r)+(sizeLeft/4), spillOverSize);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId+1] -= spillOverSize;
     }
@@ -105,26 +104,46 @@ int* DiskManager::storeRecord(Record r) {
 
 // Sequentially read the records from the memory
 void DiskManager::printAllRecords() {
+    Record r;
     // Loop through blocks that have at least 1 record
     for (int i = 0; i < this->totalNumBlocks; i++) {
         // If block has at least 1 record, ignoring spillover records (Read from original block only)
-        if (this->freeSpacePerBlock[i] <= this->blockSize - sizeof(Record)) {
+        if ((this->blockSize - this->freeSpacePerBlock[i]) >= sizeof(Record)) {
             // Loop through the block
-            for (int j = 0; j < this->blockSize; j++) {
-                // print j
+            for (int j = 0; j < this->blockSize / 4; j++) {
                 // If the byte is not -1, it is the start of a record
                 if (*(this->getBlockAddress(i) + j) != -1) {
                     // Read record
-                    Record r;
-                    // Case 1: Record is not spanned, just read normally
-                    // Read the record and print
-                    // Copy the bytes to a Record object
-                    memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
-                    // Print
-                    r.printRecord();
+                    if (j * 4 + sizeof(Record) > this->blockSize) {
+                        // Case 1: Record is spanned, memcpy from this block and the next block to form a full record
+                        // Copy first part of the record (On this block)
+                        // Calculate remaining size of the record
+                        int sizeLeft = (this->blockSize - j * 4);
+                        int spillOverSize = sizeof(Record) - sizeLeft;
+                        // Copy the first part of the record (On this block)
+                        memcpy(&r, this->getBlockAddress(i) + j, sizeLeft);
+                        // Copy the second part of the record (On the next block)
+                        memcpy(reinterpret_cast<char*>(&r) + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+                        //memcpy(&r + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
 
-                    // Skip to the next record
-                    j += sizeof(Record)/4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                        // Print spanned
+                        cout << "Spanned record: ";
+                        r.printRecord();
+
+                        // Skip to the next block and ignore spillOverSize bytes
+                        i += 1;
+                        j = spillOverSize / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                    } else {
+                        // Case 2: Record is not spanned, just read normally
+                        // Copy the bytes to a Record object
+                        memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
+                        // Print
+                        cout << "Non-Span record: ";
+                        r.printRecord();
+
+                        // Skip to the next record
+                        j += sizeof(Record) / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                    }
                 }
             }
         }

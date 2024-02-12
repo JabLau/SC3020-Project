@@ -7,19 +7,22 @@
 
 
 class Node {
-private:
+public:
+    bool leafNode;
     int *keys; // Number of votes
     int* *pointers;
     int maxKeys;
     int currKeyCount = 0;
     int* parentPointer;
 
-public:
     Node(int maxKeys);
     ~Node();
     bool isFull();
     bool addKey(int key, int* address);
     void printNode();
+
+    // Set if leaf node
+    void isLeafNode(bool isLeaf);
 
     // Parent Node
     void setParent(int* parentPointer);
@@ -27,6 +30,9 @@ public:
     // Pointer to next node in same level, aka pointer n+1
     void setNextNodePointer(int* nextLocation);
     int* getNextNodePointer();
+
+    bool clearKeys();
+    void setPtr(int index, int* address);
 };
 
 

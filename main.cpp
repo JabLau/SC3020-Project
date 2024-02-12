@@ -14,6 +14,7 @@
 #include "DiskManager.h"
 #include "FileManager.h"
 #include "Node.h"
+#include "BPTree.h"
 
 using namespace std;
 
@@ -49,6 +50,10 @@ int main()
     n.addKey(r3.numVotes, addr3);
     n.printNode();
 
+    BPTree bt = BPTree(3);
+    bt.insertKey(r1.numVotes,addr1);
+    bt.insertKey(r2.numVotes,addr2);
+    bt.insertKey(r3.numVotes,addr3);
     // Loop and print each memory byte
     int* startAddr = disk.memStartAddress;
     // Print start memory

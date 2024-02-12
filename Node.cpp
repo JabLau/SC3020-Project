@@ -54,6 +54,10 @@ bool Node::addKey(int key, int *address) {
     return true;
 }
 
+void Node::isLeafNode(bool isLeaf) {
+    this->leafNode = isLeaf;
+}
+
 void Node::setParent(int *parentPointer) {
     this->parentPointer = parentPointer;
 }
@@ -79,5 +83,12 @@ void Node::printNode() {
     }else {
         cout << "Node is empty" << endl;
     }
+}
+
+bool Node::clearKeys() {
+    return true;
+}
+
+void Node::setPtr(int index, int *address) {
 
 }

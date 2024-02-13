@@ -5,8 +5,7 @@
 #ifndef SC3020_PROJECT_NODE_H
 #define SC3020_PROJECT_NODE_H
 
-#include "BPTree.h"
-
+#include "tempStruct.h"
 
 class Node {
 public:
@@ -16,7 +15,7 @@ public:
     int maxKeys;
     int currKeyCount = 0;
     int* parentPointer;
-    bool setNextNode = false;
+    bool setNextNode = false; // To check if nextNodePointerTemp has been set, idk why ptrnull didnt work for it
     int* nextNodePointerTemp; // Temp until i figure out how to not use this
 
     Node(int maxKeys);

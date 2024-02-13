@@ -6,11 +6,8 @@
 #define SC3020_PROJECT_BPTREE_H
 
 #include "Node.h"
+#include "tempStruct.h"
 
-struct tempStruct{
-    int key;
-    int* address;
-};
 
 class BPTree {
 public:

@@ -6,6 +6,7 @@
 #include "BPTree.h"
 #include "Record.h"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -91,11 +92,13 @@ void Node::setNextNodePointer(int *nextLocation) {
     this->pointers[this->maxKeys] = nextLocation;
 }
 
-int *Node::getNextNodePointer() {
-    if (this->setNextNode) {
+int* Node::getNextNodePointer() {
+    if (this->leafNode) {
+        return this->pointers[this->maxKeys];
+    }else if (this->setNextNode) {
         return this->nextNodePointerTemp;
     }
-    return this->pointers[this->maxKeys];
+    return nullptr;
 }
 
 void Node::printNode() {
@@ -132,7 +135,17 @@ tempStruct Node::getKeyForTransfer() {
 
 void Node::keyTransfer(int key, int* address) {
     if (this->leafNode) {
-
+        // Check if has any keys
+        if (this->currKeyCount > 0) {
+            // Shift all keys & pointers backwards
+            // TODO: Double Check if doing transfers will result in node becoming full?
+            for (int i=this->currKeyCount; i > 0 ;i--) {
+                this->keys[i] = this->keys[i-1];
+                this->pointers[i] = this->pointers[i-1];
+            }
+        }
+        this->keys[0] = key;
+        this->pointers[0] = address;
     }else {
         // TODO: After verifying this code works 
         // Change this to > 0 and put for loop inside ltr
@@ -162,9 +175,10 @@ void Node::keyTransfer(int key, int* address) {
 bool Node::nodeValid() {
     if (this->leafNode) {
         // Leaf Node checks
+        return (this->currKeyCount >= floor((this->maxKeys+1)/2));
     }else {
         // Non-leaf node checks
-        return (this->currKeyCount > (this->maxKeys/2));
+        return (this->currKeyCount >= floor(this->maxKeys/2));
     }
 }
 

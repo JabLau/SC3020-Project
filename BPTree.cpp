@@ -57,6 +57,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     Node* firstNode; //First node of level
     int level; // Track what level we are on curr
     Node* currNode; //Current node we working on
+    Node *prevNode = nullptr; // Previous Node
 
     int n = 3;
     int level1_NodeCount = ceil(size/n);
@@ -66,7 +67,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     firstNode = &first;
     currNode = &first;
     currNode->setLeafNode(true);
-    int lv1NodeCount = 1;
+    int lv1_NodeCount = 1; // TODO: Remove for debug only!
     level++;
     // Level 1 of nodes
     for (int i=0;i < size;i++) {
@@ -75,20 +76,32 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             // Create next node
             Node* nextNode = new Node(n);
             currNode->setNextNodePointer((int*)nextNode);
+            prevNode = currNode;
             currNode = nextNode;
             currNode->setLeafNode(true);
-            lv1NodeCount++;
+            lv1_NodeCount++;
         }
         currNode->insertLeafNodeKey(list[i].key,list[i].address);
+    }
+
+    if (currNode->nodeValid() == false && prevNode != nullptr) {
+        // Node invalid, borrow from prev
+        tempStruct transfer;
+        do {
+            // Transfer nodes from neighbour until valid
+            transfer = prevNode->getKeyForTransfer();
+            currNode->keyTransfer(transfer.key, transfer.address);
+        }while (currNode->nodeValid());
     }
 
     int nodesInLevel;
     Node* prevLevelRootNode = this->rootNode;
     Node *navNode;
-    Node *prevNode;
     do {
+        // Next level in B Tree
         level++;
         currNode = nullptr;
+        prevNode = nullptr;
         nodesInLevel = 0;
         navNode = prevLevelRootNode;
         prevLevelRootNode = nullptr;
@@ -99,12 +112,13 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
                 if (currNode != nullptr) {
                     currNode->nextNodePointerTemp = (int*) nextNode;
                     currNode->setNextNode = true;
+                    prevNode = currNode;
                 }
-                prevNode = currNode;
                 currNode = nextNode;
                 nodesInLevel++;
 
                 currNode->addFirstChild((int*)navNode);
+                navNode->setParent((int*)currNode);
                 navNode = (Node*) navNode->getNextNodePointer();
 
                 if (prevLevelRootNode == nullptr) {
@@ -122,13 +136,14 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             }
         }while (navNode != nullptr);
         // Check if last node has floor(n/2) pointers
-        if (currNode->nodeValid() == false) {
+        if (currNode->nodeValid() == false && prevNode != nullptr) {
             // Node invalid, borrow from prev
+            tempStruct transfer;
             do {
                 // Transfer nodes from neighbour until valid
-                
-
-            }while (currNode->nodeValid())
+                transfer = prevNode->getKeyForTransfer();
+                currNode->keyTransfer(transfer.key, transfer.address);
+            }while (currNode->nodeValid());
         }
         // For last node of current level
     }while (nodesInLevel != 1);

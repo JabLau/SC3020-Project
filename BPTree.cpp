@@ -67,7 +67,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     currNode = &first;
     currNode->setLeafNode(true);
     int lv1NodeCount = 1;
-
+    level++;
     // Level 1 of nodes
     for (int i=0;i < size;i++) {
         // Check if full
@@ -105,6 +105,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     Node* prevLevelRootNode = this->rootNode;
     Node *navNode;
     do {
+        level++;
         currNode = nullptr;
         nodesInLevel = 0;
         navNode = prevLevelRootNode;
@@ -146,9 +147,9 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
 }
 
 void BPTree::printTree() {
-    Node* navNode = rootNode;
-    while (navNode != nullptr) {
+    Node* navNode = this->rootNode;
+    // while (navNode != nullptr) {
         navNode->printNode();
-        navNode = (Node*)navNode->getNextNodePointer();
-    }
+        // navNode = (Node*)navNode->getNextNodePointer();
+    // }
 }

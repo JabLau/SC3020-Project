@@ -8,22 +8,25 @@
 
 class Node {
 public:
-    bool leafNode;
+    bool leafNode = false;
     int *keys; // Number of votes
     int* *pointers;
     int maxKeys;
     int currKeyCount = 0;
     int* parentPointer;
+    bool setNextNode = false;
+    int* nextNodePointerTemp; // Temp until i figure out how to not use this
 
     Node(int maxKeys);
     ~Node();
     bool isFull();
-    bool addKey(int key, int* address);
-    bool insertKeySorted(int key, int* address);
+    bool addFirstChild(int *address); // 1st child has no key value
+    bool addChild(int key, int* address); // 2nd onwards has key value
+    bool insertLeafNodeKey(int key, int* address); //For leaf node
     void printNode();
 
     // Set if leaf node
-    void isLeafNode(bool isLeaf);
+    void setLeafNode(bool isLeaf);
 
     // Parent Node
     void setParent(int* parentPointer);

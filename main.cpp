@@ -66,7 +66,7 @@ int main()
     list[3].address = addr4;
     list[4].key = r5.numVotes;
     list[4].address = addr5;
-    bt.bulkLoad(list);
+    bt.bulkLoad(list, 5);
     bt.printTree();
 //    bt.insertKey(r1.numVotes,addr1);
 //    bt.insertKey(r2.numVotes,addr2);

@@ -19,8 +19,8 @@ public:
 
     BPTree(int maxKeys);
 
-    bool insertKey(int key, int* address);
-    bool bulkLoad(tempStruct *list);
+//    bool insertKey(int key, int* address);
+    bool bulkLoad(tempStruct *list, int size);
 
     void printTree();
 };

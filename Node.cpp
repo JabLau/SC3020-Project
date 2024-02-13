@@ -21,40 +21,51 @@ bool Node::isFull() {
     return (this->currKeyCount >= this->maxKeys);
 }
 
-bool Node::addKey(int key, int *address) {
-    if (this->currKeyCount > 0) {
-        bool added = false;
-        // Has values, need to find spot to place it in
-        // Check if any keys smaller than our new key
-        for(int i=0; i < this->currKeyCount;i++) {
-            if (this->keys[i] > key) {
-                // Key "i" is bigger than new key
-                // Have to move all keys backwards to fit new key
-                for (int k=this->currKeyCount;k > i;k--) {
-                    this->keys[k] = this->keys[k-1];
-                    this->pointers[k] = this->pointers[k-1];
-                }
-                // Insert new Key and address
-                this->keys[i] = key;
-                this->pointers[i] = address;
-                added = true;
-                break;
-             }
-        }
-        if (!added) {
-            //All keys are smaller than current key, put in first free position
-            this->keys[this->currKeyCount] = key;
-            this->pointers[this->currKeyCount] = address;
-        }
-    }else {
-        this->keys[0] = key;
-        this->pointers[0] = address;
-    }
-    this->currKeyCount++;
+bool Node::addFirstChild(int *address) {
+    this->pointers[0] = address;
     return true;
 }
 
-bool Node::insertKeySorted(int key, int *address) {
+bool Node::addChild(int key, int *address) {
+    // Values already sorted
+    this->keys[this->currKeyCount] = key;
+    this->pointers[this->currKeyCount+1] = address;
+    this->currKeyCount++;
+    return true;
+
+//    if (this->currKeyCount > 0) {
+//        bool added = false;
+//        // Has values, need to find spot to place it in
+//        // Check if any keys smaller than our new key
+//        for(int i=0; i < this->currKeyCount;i++) {
+//            if (this->keys[i] > key) {
+//                // Key "i" is bigger than new key
+//                // Have to move all keys backwards to fit new key
+//                for (int k=this->currKeyCount;k > i;k--) {
+//                    this->keys[k] = this->keys[k-1];
+//                    this->pointers[k] = this->pointers[k-1];
+//                }
+//                // Insert new Key and address
+//                this->keys[i] = key;
+//                this->pointers[i] = address;
+//                added = true;
+//                break;
+//             }
+//        }
+//        if (!added) {
+//            //All keys are smaller than current key, put in first free position
+//            this->keys[this->currKeyCount] = key;
+//            this->pointers[this->currKeyCount] = address;
+//        }
+//    }else {
+//        this->keys[0] = key;
+//        this->pointers[0] = address;
+//    }
+//    this->currKeyCount++;
+//    return true;
+}
+
+bool Node::insertLeafNodeKey(int key, int *address) {
     // Value is already sorted, no need to check previous values
     this->keys[this->currKeyCount] = key;
     this->pointers[this->currKeyCount] = address;
@@ -62,7 +73,7 @@ bool Node::insertKeySorted(int key, int *address) {
     return true;
 }
 
-void Node::isLeafNode(bool isLeaf) {
+void Node::setLeafNode(bool isLeaf) {
     this->leafNode = isLeaf;
 }
 
@@ -79,6 +90,9 @@ void Node::setNextNodePointer(int *nextLocation) {
 }
 
 int *Node::getNextNodePointer() {
+    if (this->setNextNode) {
+        return this->nextNodePointerTemp;
+    }
     return this->pointers[this->maxKeys];
 }
 
@@ -86,6 +100,10 @@ void Node::printNode() {
     if (currKeyCount > 0) {
         for (int i=0; i < this->currKeyCount;i++) {
             cout << pointers[i] << "|" << keys[i] << "|";
+        }
+        if (!this->leafNode) {
+            // For non-leaf nodes, print last address as well
+            cout << pointers[this->currKeyCount];
         }
         cout << endl;
     }else {

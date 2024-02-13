@@ -91,7 +91,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             // Transfer nodes from neighbour until valid
             transfer = prevNode->getKeyForTransfer();
             currNode->keyTransfer(transfer.key, transfer.address);
-        }while (currNode->nodeValid());
+        }while (currNode->nodeValid() == false);
     }
 
     int nodesInLevel;
@@ -143,7 +143,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
                 // Transfer nodes from neighbour until valid
                 transfer = prevNode->getKeyForTransfer();
                 currNode->keyTransfer(transfer.key, transfer.address);
-            }while (currNode->nodeValid());
+            }while (currNode->nodeValid() == false);
         }
         // For last node of current level
     }while (nodesInLevel != 1);

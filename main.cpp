@@ -34,13 +34,14 @@ void testBPTree() {
     DiskManager disk = DiskManager(blockSize, totalMemSize);
 
     BPTree bt = BPTree(3);
-    const int listSize = 35;
+    const int listSize = 25;
     tempStruct list[listSize];
 
     int* addr;
     for (int i=0; i < listSize;i++) {
         Record r1 = Record(to_string(123+i), "2.5", to_string(99+i));
         addr = disk.storeRecord(r1);
+        cout << r1.numVotes << "|" << addr << endl;
         list[i].key = r1.numVotes;
         list[i].address = addr;
     }

@@ -152,10 +152,11 @@ void Node::keyTransfer(int key, int* address) {
         // Then put duplicate code outside of if statement to run regardless of case
         if (this->currKeyCount == 0) {
             // Case 1: Has no keys but 1 pointer
-            Record* tempRecord = (Record*) this->pointers[0];
+            Node* tempNode = (Node*) this->pointers[0];
+            Record* tempRecord = (Record*) tempNode->pointers[0];
             this->pointers[0] = address;
             this->keys[0] = tempRecord->numVotes;
-            this->pointers[1] = (int*) tempRecord;
+            this->pointers[1] = (int*) &tempRecord;
         }else {
             // Case 2: Has x keys already, x >= 1
             // Must move all key pointers backwards by 1

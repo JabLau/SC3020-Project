@@ -94,6 +94,10 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
         }while (currNode->nodeValid() == false);
     }
 
+    // Already root node
+    if (lv1_NodeCount == 1) {
+        return true;
+    }
     int nodesInLevel;
     Node* prevLevelRootNode = this->rootNode;
     Node *navNode;

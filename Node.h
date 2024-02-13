@@ -5,6 +5,8 @@
 #ifndef SC3020_PROJECT_NODE_H
 #define SC3020_PROJECT_NODE_H
 
+#include "BPTree.h"
+
 
 class Node {
 public:
@@ -37,6 +39,10 @@ public:
 
     bool clearKeys();
     void setPtr(int index, int* address);
+    
+    tempStruct getKeyForTransfer();
+    void keyTransfer(int key, int* address);
+    bool nodeValid();
 };
 
 

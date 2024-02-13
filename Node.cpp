@@ -3,6 +3,8 @@
 //
 
 #include "Node.h"
+#include "BPTree.h"
+#include "Record.h"
 #include <iostream>
 
 using namespace std;
@@ -108,6 +110,61 @@ void Node::printNode() {
         cout << endl;
     }else {
         cout << "Node is empty" << endl;
+    }
+}
+
+tempStruct Node::getKeyForTransfer() {
+    tempStruct rtn = tempStruct();
+    if (this->leafNode) {
+        // Leaf Node
+        // Return last key and second last pointer
+        rtn.key = keys[this->currKeyCount-1];
+        rtn.address = pointers[this->currKeyCount-1];
+    } else {
+        // Not Leaf Node
+        // Return last key and  last pointer
+        rtn.key = keys[this->currKeyCount-1];
+        rtn.address = pointers[this->currKeyCount];
+    }
+    this->currKeyCount--;
+    return rtn;
+}
+
+void Node::keyTransfer(int key, int* address) {
+    if (this->leafNode) {
+
+    }else {
+        // TODO: After verifying this code works 
+        // Change this to > 0 and put for loop inside ltr
+        // Then put duplicate code outside of if statement to run regardless of case
+        if (this->currKeyCount == 0) {
+            // Case 1: Has no keys but 1 pointer
+            Record* tempRecord = (Record*) this->pointers[0];
+            this->pointers[0] = address;
+            this->keys[0] = tempRecord->numVotes;
+            this->pointers[1] = (int*) tempRecord;
+        }else {
+            // Case 2: Has x keys already, x >= 1
+            // Must move all key pointers backwards by 1
+            for (int i=this->currKeyCount; i > 0 ;i--) {
+                this->pointers[i+1] = this->pointers[i];
+                this->keys[i] = this->keys[i-1];
+            }
+            Record* tempRecord = (Record*) this->pointers[0];
+            this->pointers[0] = address;
+            this->keys[0] = tempRecord->numVotes;
+            this->pointers[1] = (int*) tempRecord;
+        }
+    }
+    this->currKeyCount++;
+}
+
+bool Node::nodeValid() {
+    if (this->leafNode) {
+        // Leaf Node checks
+    }else {
+        // Non-leaf node checks
+        return (this->currKeyCount > (this->maxKeys/2));
     }
 }
 

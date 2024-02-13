@@ -81,29 +81,11 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
         }
         currNode->insertLeafNodeKey(list[i].key,list[i].address);
     }
-//    currNode = nullptr;
-//    // Level 2 of nodes
-//    Node *navNode = firstNode;
-//    int nodesForLevel = ceil(lv1NodeCount/n);
-//    // Create 1st node of level
-//    Node tempNode = Node(n);
-//    currNode = &tempNode;
-//    do{
-//        if (currNode->isFull()) {
-//            // Check if curr node full, need create next node
-//            Node nextNode = Node(n);
-//            currNode->setNextNodePointer((int *) &nextNode);
-//            currNode = &nextNode;
-//        }
-//        // Insert first value and pointer to node
-//        currNode->insertKeySorted(navNode->keys[0], (int*)navNode);
-//        navNode->setParent((int*)currNode);
-//        navNode = (Node*) navNode->getNextNodePointer();
-//    }while (navNode != nullptr);
 
     int nodesInLevel;
     Node* prevLevelRootNode = this->rootNode;
     Node *navNode;
+    Node *prevNode;
     do {
         level++;
         currNode = nullptr;
@@ -118,11 +100,10 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
                     currNode->nextNodePointerTemp = (int*) nextNode;
                     currNode->setNextNode = true;
                 }
+                prevNode = currNode;
                 currNode = nextNode;
                 nodesInLevel++;
 
-                // When creating the previous level need to ensure that there is at least 2 child nodes
-                // For last node of current level
                 currNode->addFirstChild((int*)navNode);
                 navNode = (Node*) navNode->getNextNodePointer();
 
@@ -130,11 +111,26 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
                     prevLevelRootNode = currNode;
                 }
             }
-            // Insert first value and pointer to node
-            currNode->addChild(navNode->keys[0], (int*)navNode);
-            navNode->setParent((int*)currNode);
-            navNode = (Node*) navNode->getNextNodePointer();
+
+            if (navNode == nullptr) {
+                // No keys in current node = need to borrow
+            }else {
+                // Insert first value and pointer to node
+                currNode->addChild(navNode->keys[0], (int*)navNode);
+                navNode->setParent((int*)currNode);
+                navNode = (Node*) navNode->getNextNodePointer();
+            }
         }while (navNode != nullptr);
+        // Check if last node has floor(n/2) pointers
+        if (currNode->nodeValid() == false) {
+            // Node invalid, borrow from prev
+            do {
+                // Transfer nodes from neighbour until valid
+                
+
+            }while (currNode->nodeValid())
+        }
+        // For last node of current level
     }while (nodesInLevel != 1);
     this->rootNode = currNode;
 

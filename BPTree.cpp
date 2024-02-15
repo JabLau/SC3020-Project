@@ -214,6 +214,7 @@ void BPTree::findByRange(int start, int end) {
 
     // Print Results
     cout << "Total Average of Average ratings:" << (totalAvgRating/recordCount) << endl;
+    cout << "Total Records Accessed:" << recordCount << endl;
 }
 
 Node* BPTree::findNodeWithValue(int value) {
@@ -227,7 +228,6 @@ Node* BPTree::findNodeWithValue(int value) {
             if (value <= currNode->keys[i]) {
                 currNode = (Node*) currNode->pointers[i];
                 foundNextNode = true;
-                indexNodesAccessed++;
                 break;
             }
         }
@@ -237,7 +237,7 @@ Node* BPTree::findNodeWithValue(int value) {
             // TODO: Check if there is a pointer here? But should have right?
             currNode = (Node*) currNode->pointers[currNode->currKeyCount];
         }
-
+        indexNodesAccessed++;
     }
     indexNodesAccessed--; // Last node accessed is a Leaf Node, Not counted!
 

@@ -10,6 +10,7 @@
 
 
 #include <iostream>
+#include <cmath>
 #include "Record.h"
 #include "DiskManager.h"
 #include "FileManager.h"
@@ -34,19 +35,21 @@ void testBPTree() {
     DiskManager disk = DiskManager(blockSize, totalMemSize);
 
     BPTree bt = BPTree(3);
-    const int listSize = 25;
+    const int listSize = 555;
     tempStruct list[listSize];
 
     int* addr;
     for (int i=0; i < listSize;i++) {
-        Record r1 = Record(to_string(123+i), "2.5", to_string(99+i));
+        Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+floor(i/2)));
         addr = disk.storeRecord(r1);
         cout << r1.numVotes << "|" << addr << endl;
         list[i].key = r1.numVotes;
         list[i].address = addr;
     }
     bt.bulkLoad(list, listSize);
-    bt.printTree();
+    // bt.printTree();
+    // bt.findNodeWithValue(101);
+    bt.findByRange(145,199);
 }
 
 int main()

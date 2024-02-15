@@ -11,7 +11,7 @@ class Node {
 public:
     bool leafNode = false;
     int *keys; // Number of votes
-    int* *pointers;
+    int* *pointers; // I want to change to Node* but we also store disk address how ah?
     int maxKeys;
     int currKeyCount = 0;
     int* parentPointer;

@@ -20,6 +20,9 @@ public:
     bool bulkLoad(tempStruct *list, int size);
 
     void printTree();
+
+    Node* findNodeWithValue(int value);
+    void findByRange(int, int);
 };
 
 #endif //SC3020_PROJECT_BPTREE_H

@@ -5,6 +5,10 @@
 #include "BPTree.h"
 #include "Node.h"
 #include <cmath>
+#include <iostream>
+#include "Record.h"
+
+using namespace std;
 
 BPTree::BPTree(int maxKeys) {
     this->maxKeys = maxKeys;
@@ -60,6 +64,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     Node *prevNode = nullptr; // Previous Node
 
     int n = 3;
+    int totalNodes = 0;
     int level1_NodeCount = ceil(size/n);
     // Initalize first node
     Node first = Node(n);
@@ -69,6 +74,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     currNode->setLeafNode(true);
     int lv1_NodeCount = 1; // TODO: Remove for debug only!
     level++;
+    totalNodes++;
     // Level 1 of nodes
     for (int i=0;i < size;i++) {
         // Check if full
@@ -80,6 +86,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             currNode = nextNode;
             currNode->setLeafNode(true);
             lv1_NodeCount++;
+            totalNodes++;
         }
         currNode->insertLeafNodeKey(list[i].key,list[i].address);
     }
@@ -113,6 +120,7 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             if (currNode == nullptr || currNode->isFull()) {
                 // Check if curr node full, need create next node
                 Node* nextNode = new Node(n);
+                totalNodes++;
                 if (currNode != nullptr) {
                     currNode->nextNodePointerTemp = (int*) nextNode;
                     currNode->setNextNode = true;
@@ -157,6 +165,8 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
     // Do a loop for each level, create a array for first node in level & node count in level
     // 1 while loop outside to check if only 1 node in curr level
     // 1 while loop inside to create nodes for level
+    cout << "Total Tree Levels:" << level << endl;
+    cout << "Total Nodes in B+Tree:" << totalNodes << endl;
 
     return false;
 }
@@ -167,4 +177,103 @@ void BPTree::printTree() {
         navNode->printNode();
         // navNode = (Node*)navNode->getNextNodePointer();
     // }
+}
+
+void BPTree::findByRange(int start, int end) {
+    // Implement checks to prevent end < start?
+
+    Node *currNode = this->findNodeWithValue(start);
+    if (currNode == nullptr) {
+        cout << "Cannot find node with value" << endl;
+        return;
+    }
+
+    double totalAvgRating = 0; 
+    int recordCount = 0;
+
+    bool overshot = false;
+    Record* tempRecord;
+    do {
+        for (int i=0;i < currNode->currKeyCount;i++) {
+            if (currNode->keys[i] >= start) {
+                if (currNode->keys[i] > end) {
+                    overshot = true;
+                    break;
+                }
+                tempRecord = (Record*) currNode->pointers[i];
+                totalAvgRating += tempRecord->avgRating;
+                recordCount++;
+            }
+        }
+
+        if (overshot) {
+            break;
+        }
+        currNode = (Node*) currNode->getNextNodePointer();
+    }while (currNode != nullptr);
+
+    // Print Results
+    cout << "Total Average of Average ratings:" << (totalAvgRating/recordCount) << endl;
+}
+
+Node* BPTree::findNodeWithValue(int value) {
+    Node* currNode = this->rootNode;
+    bool foundNextNode;
+    int indexNodesAccessed = 1; // Do We count Root node as Index Node Accessed?
+    while (currNode->leafNode == false) {
+        // Not leaf node
+        foundNextNode = false;
+        for (int i=0;i < currNode->currKeyCount;i++) {
+            if (value <= currNode->keys[i]) {
+                currNode = (Node*) currNode->pointers[i];
+                foundNextNode = true;
+                indexNodesAccessed++;
+                break;
+            }
+        }
+
+        if (!foundNextNode) {
+            // Did not find key smaller than value, use last pointer
+            // TODO: Check if there is a pointer here? But should have right?
+            currNode = (Node*) currNode->pointers[currNode->currKeyCount];
+        }
+
+    }
+    indexNodesAccessed--; // Last node accessed is a Leaf Node, Not counted!
+
+    // Value < Smallest value in B+Tree, cannot find
+    if (value < currNode->keys[0]) {
+        return nullptr;
+    }
+
+    // Check if current leaf node has value
+    // If not traverse nodes until find Node with Value
+    bool foundValue = false;
+    do {
+        for (int i=0;i < currNode->currKeyCount;i++) {
+            if (currNode->keys[i] == value) {
+                foundValue = true;
+                break;
+            }
+        }
+
+        if (foundValue) {
+            break; // Found, now GTFO of loop
+        }
+        currNode = (Node*) currNode->getNextNodePointer(); // Go to next node
+    }while (currNode != nullptr);
+    // Terminate if found the value or
+    // If reach end of line without finding value
+    // Either by traversing all the nodes till the end w/o finding the value or
+    // This the only node and does not have the value
+    // If 
+
+    if (foundValue) {
+        cout << "Index nodes Accessed:" << indexNodesAccessed << endl;
+        // Found value in this node, return it
+        return currNode;
+    }
+
+    // Could not find value
+    return nullptr;
 }

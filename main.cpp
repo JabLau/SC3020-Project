@@ -12,7 +12,6 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
-
 #include "Record.h"
 #include "DiskManager.h"
 #include "FileManager.h"
@@ -55,7 +54,6 @@ void experiment_1(DiskManager disk){
     cout << "The number of records stored in a block: " << disk.blockSize / sizeof(Record) << endl;
     //• the number of blocks for storing the data;
     cout << "The number of blocks for storing the data: " << fm.blockCount << endl;
-
 }
 
 void testBPTree(){
@@ -70,14 +68,16 @@ void testBPTree(){
     const int listSize = 25;
     tempStruct list[listSize];
 
-    int* addr;
+    addressInfo addr;
+    int *absol_addr;
     for (int i=0; i < listSize;i++) {
         // Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+floor(i/2))); // For testing duplicate key values
         Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+i));
         addr = disk.storeRecord(r1);
-        cout << r1.numVotes << "|" << addr << endl;
+        absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+        cout << r1.numVotes << "|" << absol_addr << endl;
         list[i].key = r1.numVotes;
-        list[i].address = addr;
+        list[i].address = absol_addr;
     }
     bt.bulkLoad(list, listSize);
     bt.findByRange(100,101);
@@ -85,9 +85,8 @@ void testBPTree(){
 
 int main()
 {
-    testBPTree();
-    
-    /*
+    //testBPTree();
+
     // Settings
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB
@@ -126,22 +125,21 @@ int main()
 //    bt.insertKey(r1.numVotes,addr1);
 //    bt.insertKey(r2.numVotes,addr2);
 //    bt.insertKey(r3.numVotes,addr3);
-    // Read file and populate allocated area
-    FileManager fm = FileManager();
-    // fm.load_data(disk);
-
-    // Loop and print each memory byte
-    int* startAddr = disk.memStartAddress;
-    // Print start memory
-    cout << "Start memory: " << disk.memStartAddress << endl;
-    // Print memory contents of the record after storing
-    // for (int i = 0; i < blockSize; i++) {
-    //     cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << endl;
-    // }
-
-    // Read all records
-    disk.printAllRecords();
-    */
+//    // Read file and populate allocated area
+//    FileManager fm = FileManager();
+//    // fm.load_data(disk);
+//
+//    // Loop and print each memory byte
+//    int* startAddr = disk.memStartAddress;
+//    // Print start memory
+//    cout << "Start memory: " << disk.memStartAddress << endl;
+//    // Print memory contents of the record after storing
+//    // for (int i = 0; i < blockSize; i++) {
+//    //     cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << endl;
+//    // }
+//
+//    // Read all records
+//    disk.printAllRecords();
 
 //    int* addr = disk.getStartAddress();
 //    Record r = disk.getRecord(addr);
@@ -168,6 +166,7 @@ int main()
 //    r.printRecord();
 //    r = disk.getRecord(2);
 //    r.printRecord();
+    return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

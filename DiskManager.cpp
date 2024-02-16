@@ -102,8 +102,6 @@ addressInfo DiskManager::storeRecord(Record r) {
     // Print relative address and return the absolute address of the record
     // cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
     return {nextAvailableAddress.blockId, nextAvailableAddress.offset};
-    //cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
-    // return getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset;
 }
 
 // Sequentially read the records from the memory

@@ -18,7 +18,7 @@ public:
 
 //    bool insertKey(int key, int* address);
     bool bulkLoad(tempStruct *list, int size);
-
+    void ensureNodeValid(Node*, Node*);
     void printTree();
 
     Node* findNodeWithValue(int value);

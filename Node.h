@@ -14,9 +14,6 @@ public:
     int* *pointers; // I want to change to Node* but we also store disk address how ah?
     int maxKeys;
     int currKeyCount = 0;
-    int* parentPointer;
-    bool setNextNode = false; // To check if nextNodePointerTemp has been set, idk why ptrnull didnt work for it
-    int* nextNodePointerTemp; // Temp until i figure out how to not use this
 
     Node(int maxKeys);
     ~Node();
@@ -29,18 +26,13 @@ public:
     // Set if leaf node
     void setLeafNode(bool isLeaf);
 
-    // Parent Node
-    void setParent(int* parentPointer);
-    int* getParent();
-    // Pointer to next node in same level, aka pointer n+1
-    void setNextNodePointer(int* nextLocation);
+    // To get next node pointer for leaf nodes
+    void setNextNodePointer(int*);
     int* getNextNodePointer();
-
-    bool clearKeys();
-    void setPtr(int index, int* address);
     
     tempStruct getKeyForTransfer();
     void keyTransfer(int key, int* address);
+
     bool nodeValid();
 };
 

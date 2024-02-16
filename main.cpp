@@ -11,11 +11,15 @@
 
 #include <iostream>
 #include <cmath>
+#include <queue>
+
 #include "Record.h"
 #include "DiskManager.h"
 #include "FileManager.h"
 #include "Node.h"
 #include "BPTree.h"
+
+
 
 using namespace std;
 
@@ -35,21 +39,20 @@ void testBPTree() {
     DiskManager disk = DiskManager(blockSize, totalMemSize);
 
     BPTree bt = BPTree(3);
-    const int listSize = 555;
+    const int listSize = 25;
     tempStruct list[listSize];
 
     int* addr;
     for (int i=0; i < listSize;i++) {
-        Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+floor(i/2)));
+        // Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+floor(i/2))); // For testing duplicate key values
+        Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+i));
         addr = disk.storeRecord(r1);
         cout << r1.numVotes << "|" << addr << endl;
         list[i].key = r1.numVotes;
         list[i].address = addr;
     }
     bt.bulkLoad(list, listSize);
-    // bt.printTree();
-    // bt.findNodeWithValue(101);
-    bt.findByRange(145,199);
+    bt.findByRange(100,101);
 }
 
 int main()

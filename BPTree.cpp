@@ -6,6 +6,8 @@
 #include "Node.h"
 #include <cmath>
 #include <iostream>
+#include <queue>
+
 #include "Record.h"
 
 using namespace std;
@@ -58,41 +60,125 @@ BPTree::BPTree(int maxKeys) {
 
 bool BPTree::bulkLoad(tempStruct *list, int size) {
 
-    Node* firstNode; //First node of level
     int level; // Track what level we are on curr
     Node* currNode; //Current node we working on
     Node *prevNode = nullptr; // Previous Node
 
     int n = 3;
     int totalNodes = 0;
-    int level1_NodeCount = ceil(size/n);
-    // Initalize first node
-    Node first = Node(n);
-    this->rootNode = &first; // Temp not actual root node!!
-    firstNode = &first;
-    currNode = &first;
+
+    // Initalize First Level of nodes
+    Node* first = new Node(n);
+    this->rootNode = first; // Temp not actual root node!!
+    currNode = first;
     currNode->setLeafNode(true);
-    int lv1_NodeCount = 1; // TODO: Remove for debug only!
     level++;
     totalNodes++;
-    // Level 1 of nodes
+    // cout << level << "|" << totalNodes << "|" << currNode << endl;
     for (int i=0;i < size;i++) {
         // Check if full
         if (currNode->isFull()) {
-            // Create next node
+            // Curr node full, Create next node
             Node* nextNode = new Node(n);
             currNode->setNextNodePointer((int*)nextNode);
             prevNode = currNode;
             currNode = nextNode;
             currNode->setLeafNode(true);
-            lv1_NodeCount++;
             totalNodes++;
+            // cout << level << "|" << totalNodes << "|" << nextNode << endl;
         }
         currNode->insertLeafNodeKey(list[i].key,list[i].address);
     }
 
+    // Ensure last Leaf Node Valid, floor(n+1/2)
+    ensureNodeValid(prevNode, currNode);
+
+    // Only 1 node, which is root node
+    if (totalNodes == 1) {
+        return true;
+    }
+
+    int nodesInLevel;
+    queue<Node*>* prevFifoQueue = nullptr; // For previous level
+    queue<Node*>* currFifoQueue = new queue<Node*>(); // For current level
+    Node *navNode;
+    int queueSize;
+    bool nodeFirstPtr = false; // Fresh node, need to ensure 1st item added is the pointer!
+    do {
+        // Next level in B Tree
+        level++;
+        currNode = nullptr;
+        prevNode = nullptr;
+        nodesInLevel = 0;
+        // Get first node to navigate to
+        if (level == 2) {
+            navNode = this->rootNode;
+        }else {
+            navNode = prevFifoQueue->front();
+            prevFifoQueue->pop();
+        }
+        do{
+            if (currNode == nullptr || currNode->isFull()) {
+                // Check if curr node full, need create next node
+                Node* nextNode = new Node(n);
+                nodeFirstPtr = true;
+                totalNodes++;
+                nodesInLevel++;
+                // cout << level << "|" << totalNodes << "|" << nextNode << endl;
+                currFifoQueue->push(nextNode); // Will include 1st node as well!
+
+                if (nodesInLevel > 1) {
+                    // If more than 1 node, means there is a previous node
+                    prevNode = currNode;
+                }
+                currNode = nextNode;
+            }
+
+            if (nodeFirstPtr) {
+                // Add first child, only pointer
+                currNode->addFirstChild((int*)navNode);
+                nodeFirstPtr = false;
+            }else {
+                // Add first key and pointer to node
+                currNode->addChild(navNode->keys[0], (int*)navNode);
+            }
+
+            if (level == 2) {
+                    // Currently indexing level 1, leaf node
+                    navNode = (Node*) navNode->getNextNodePointer();
+                }else {
+                    // Indexing level 2 and above
+                    if(!prevFifoQueue->empty()) {
+                        navNode = prevFifoQueue->front();
+                        prevFifoQueue->pop();
+                    }else {
+                        navNode = nullptr;
+                    }
+                }
+        }while (navNode != nullptr); //navNode check for leaf node
+
+        // Check if last node has floor(n/2) pointers
+        ensureNodeValid(prevNode, currNode);
+
+        // Copy currFifoQueue over
+        if (prevFifoQueue != nullptr) {
+            free(prevFifoQueue);
+        }
+        prevFifoQueue = currFifoQueue;
+        currFifoQueue = new queue<Node*>();
+
+    }while (prevFifoQueue->size() != 1);
+    this->rootNode = currNode;
+
+    cout << "Total Tree Levels:" << level << endl;
+    cout << "Total Nodes in B+Tree:" << totalNodes << endl;
+
+    return true;
+}
+
+void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
     if (currNode->nodeValid() == false && prevNode != nullptr) {
-        // Node invalid, borrow from prev
+        // Node invalid, borrow from prev node
         tempStruct transfer;
         do {
             // Transfer nodes from neighbour until valid
@@ -100,83 +186,11 @@ bool BPTree::bulkLoad(tempStruct *list, int size) {
             currNode->keyTransfer(transfer.key, transfer.address);
         }while (currNode->nodeValid() == false);
     }
-
-    // Already root node
-    if (lv1_NodeCount == 1) {
-        return true;
-    }
-    int nodesInLevel;
-    Node* prevLevelRootNode = this->rootNode;
-    Node *navNode;
-    do {
-        // Next level in B Tree
-        level++;
-        currNode = nullptr;
-        prevNode = nullptr;
-        nodesInLevel = 0;
-        navNode = prevLevelRootNode;
-        prevLevelRootNode = nullptr;
-        do{
-            if (currNode == nullptr || currNode->isFull()) {
-                // Check if curr node full, need create next node
-                Node* nextNode = new Node(n);
-                totalNodes++;
-                if (currNode != nullptr) {
-                    currNode->nextNodePointerTemp = (int*) nextNode;
-                    currNode->setNextNode = true;
-                    prevNode = currNode;
-                }
-                currNode = nextNode;
-                nodesInLevel++;
-
-                currNode->addFirstChild((int*)navNode);
-                navNode->setParent((int*)currNode);
-                navNode = (Node*) navNode->getNextNodePointer();
-
-                if (prevLevelRootNode == nullptr) {
-                    prevLevelRootNode = currNode;
-                }
-            }
-
-            if (navNode == nullptr) {
-                // No keys in current node = need to borrow
-            }else {
-                // Insert first value and pointer to node
-                currNode->addChild(navNode->keys[0], (int*)navNode);
-                navNode->setParent((int*)currNode);
-                navNode = (Node*) navNode->getNextNodePointer();
-            }
-        }while (navNode != nullptr);
-        // Check if last node has floor(n/2) pointers
-        if (currNode->nodeValid() == false && prevNode != nullptr) {
-            // Node invalid, borrow from prev
-            tempStruct transfer;
-            do {
-                // Transfer nodes from neighbour until valid
-                transfer = prevNode->getKeyForTransfer();
-                currNode->keyTransfer(transfer.key, transfer.address);
-            }while (currNode->nodeValid() == false);
-        }
-        // For last node of current level
-    }while (nodesInLevel != 1);
-    this->rootNode = currNode;
-
-    // TODO: Plan how many Level 1 nodes we need to have for the tree
-    // Do a loop for each level, create a array for first node in level & node count in level
-    // 1 while loop outside to check if only 1 node in curr level
-    // 1 while loop inside to create nodes for level
-    cout << "Total Tree Levels:" << level << endl;
-    cout << "Total Nodes in B+Tree:" << totalNodes << endl;
-
-    return false;
 }
 
 void BPTree::printTree() {
     Node* navNode = this->rootNode;
-    // while (navNode != nullptr) {
-        navNode->printNode();
-        // navNode = (Node*)navNode->getNextNodePointer();
-    // }
+    navNode->printNode();
 }
 
 void BPTree::findByRange(int start, int end) {
@@ -242,7 +256,8 @@ Node* BPTree::findNodeWithValue(int value) {
     indexNodesAccessed--; // Last node accessed is a Leaf Node, Not counted!
 
     // Value < Smallest value in B+Tree, cannot find
-    if (value < currNode->keys[0]) {
+    // Value > Largest value in B+Tree, cannot find
+    if (value < currNode->keys[0] || value > currNode->keys[currNode->currKeyCount-1]) {
         return nullptr;
     }
 
@@ -266,7 +281,6 @@ Node* BPTree::findNodeWithValue(int value) {
     // If reach end of line without finding value
     // Either by traversing all the nodes till the end w/o finding the value or
     // This the only node and does not have the value
-    // If 
 
     if (foundValue) {
         cout << "Index nodes Accessed:" << indexNodesAccessed << endl;

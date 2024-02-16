@@ -36,6 +36,7 @@ bool Node::addChild(int key, int *address) {
     this->currKeyCount++;
     return true;
 
+//  This was a sorting function but can remove if not needed anymore!
 //    if (this->currKeyCount > 0) {
 //        bool added = false;
 //        // Has values, need to find spot to place it in
@@ -80,23 +81,16 @@ void Node::setLeafNode(bool isLeaf) {
     this->leafNode = isLeaf;
 }
 
-void Node::setParent(int *parentPointer) {
-    this->parentPointer = parentPointer;
-}
-
-int *Node::getParent() {
-    return this->parentPointer;
-}
-
 void Node::setNextNodePointer(int *nextLocation) {
-    this->pointers[this->maxKeys] = nextLocation;
+    if (this->leafNode) {
+        this->pointers[this->maxKeys] = nextLocation;
+    }
 }
+
 
 int* Node::getNextNodePointer() {
     if (this->leafNode) {
         return this->pointers[this->maxKeys];
-    }else if (this->setNextNode) {
-        return this->nextNodePointerTemp;
     }
     return nullptr;
 }
@@ -155,30 +149,22 @@ void Node::keyTransfer(int key, int* address) {
                 this->keys[i] = this->keys[i-1];
                 this->pointers[i+1] = this->pointers[i];
             }
-        }
+        }// Retrieve Key to store as first key
         Node* tempNode = (Node*) this->pointers[0];
         Record* tempRecord = (Record*) tempNode->pointers[0];
         this->pointers[0] = address;
         this->keys[0] = tempRecord->numVotes;
-        this->pointers[1] = (int*) &tempRecord;
+        this->pointers[1] = (int*) tempNode;
     }
     this->currKeyCount++;
 }
 
 bool Node::nodeValid() {
     if (this->leafNode) {
-        // Leaf Node checks
+        // Leaf Node check for floor((n+1)/2)
         return (this->currKeyCount >= floor((this->maxKeys+1)/2));
     }else {
-        // Non-leaf node checks
+        // Non-leaf node check for floor(n/2)
         return (this->currKeyCount >= floor(this->maxKeys/2));
     }
-}
-
-bool Node::clearKeys() {
-    return true;
-}
-
-void Node::setPtr(int index, int *address) {
-
 }

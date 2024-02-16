@@ -5,34 +5,35 @@
 #ifndef SC3020_PROJECT_NODE_H
 #define SC3020_PROJECT_NODE_H
 
+#include "tempStruct.h"
 
 class Node {
 public:
-    bool leafNode;
+    bool leafNode = false;
     int *keys; // Number of votes
-    int* *pointers;
+    int* *pointers; // I want to change to Node* but we also store disk address how ah?
     int maxKeys;
     int currKeyCount = 0;
-    int* parentPointer;
 
     Node(int maxKeys);
     ~Node();
     bool isFull();
-    bool addKey(int key, int* address);
+    bool addFirstChild(int *address); // 1st child has no key value
+    bool addChild(int key, int* address); // 2nd onwards has key value
+    bool insertLeafNodeKey(int key, int* address); //For leaf node
     void printNode();
 
     // Set if leaf node
-    void isLeafNode(bool isLeaf);
+    void setLeafNode(bool isLeaf);
 
-    // Parent Node
-    void setParent(int* parentPointer);
-    int* getParent();
-    // Pointer to next node in same level, aka pointer n+1
-    void setNextNodePointer(int* nextLocation);
+    // To get next node pointer for leaf nodes
+    void setNextNodePointer(int*);
     int* getNextNodePointer();
+    
+    tempStruct getKeyForTransfer();
+    void keyTransfer(int key, int* address);
 
-    bool clearKeys();
-    void setPtr(int index, int* address);
+    bool nodeValid();
 };
 
 

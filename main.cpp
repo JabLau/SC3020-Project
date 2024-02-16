@@ -10,11 +10,16 @@
 
 
 #include <iostream>
+#include <cmath>
+#include <queue>
+
 #include "Record.h"
 #include "DiskManager.h"
 #include "FileManager.h"
 #include "Node.h"
 #include "BPTree.h"
+
+
 
 using namespace std;
 
@@ -53,8 +58,36 @@ void experiment_1(DiskManager disk){
 
 }
 
+void testBPTree(){
+    // Settings
+    int blockSize = 200; // in bytes
+    int totalMemSize = 250 * 1000000; //in MB
+
+    // Allocate space simulating main memory
+    DiskManager disk = DiskManager(blockSize, totalMemSize);
+
+    BPTree bt = BPTree(3);
+    const int listSize = 25;
+    tempStruct list[listSize];
+
+    int* addr;
+    for (int i=0; i < listSize;i++) {
+        // Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+floor(i/2))); // For testing duplicate key values
+        Record r1 = Record(to_string(123+i), to_string(i+0.5), to_string(99+i));
+        addr = disk.storeRecord(r1);
+        cout << r1.numVotes << "|" << addr << endl;
+        list[i].key = r1.numVotes;
+        list[i].address = addr;
+    }
+    bt.bulkLoad(list, listSize);
+    bt.findByRange(100,101);
+}
+
 int main()
 {
+    testBPTree();
+    
+    /*
     // Settings
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB
@@ -93,6 +126,22 @@ int main()
 //    bt.insertKey(r1.numVotes,addr1);
 //    bt.insertKey(r2.numVotes,addr2);
 //    bt.insertKey(r3.numVotes,addr3);
+    // Read file and populate allocated area
+    FileManager fm = FileManager();
+    // fm.load_data(disk);
+
+    // Loop and print each memory byte
+    int* startAddr = disk.memStartAddress;
+    // Print start memory
+    cout << "Start memory: " << disk.memStartAddress << endl;
+    // Print memory contents of the record after storing
+    // for (int i = 0; i < blockSize; i++) {
+    //     cout << "Address: " << (startAddr + i) << ", Value: " << *(startAddr + i) << endl;
+    // }
+
+    // Read all records
+    disk.printAllRecords();
+    */
 
 //    int* addr = disk.getStartAddress();
 //    Record r = disk.getRecord(addr);

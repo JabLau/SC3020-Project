@@ -6,6 +6,8 @@
 #define SC3020_PROJECT_BPTREE_H
 
 #include "Node.h"
+#include "tempStruct.h"
+
 
 class BPTree {
 public:
@@ -14,8 +16,13 @@ public:
 
     BPTree(int maxKeys);
 
-    bool insertKey(int key, int* address);
-};
+//    bool insertKey(int key, int* address);
+    bool bulkLoad(tempStruct *list, int size);
+    void ensureNodeValid(Node*, Node*);
+    void printTree();
 
+    Node* findNodeWithValue(int value);
+    void findByRange(int, int);
+};
 
 #endif //SC3020_PROJECT_BPTREE_H

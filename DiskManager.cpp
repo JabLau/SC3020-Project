@@ -63,6 +63,8 @@ addressInfo DiskManager::storeRecord(Record r) {
 
     // Find the next available address
     addressInfo nextAvailableAddress = getNextAvailableAddress();
+    // Print next available address
+    //cout << "Found empty slot at: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
 
     // Case 1: Address is -1 -1, no available space
     if (nextAvailableAddress.blockId == -1 && nextAvailableAddress.offset == -1) {
@@ -100,6 +102,8 @@ addressInfo DiskManager::storeRecord(Record r) {
     // Print relative address and return the absolute address of the record
     // cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
     return {nextAvailableAddress.blockId, nextAvailableAddress.offset};
+    //cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
+    // return getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset;
 }
 
 // Sequentially read the records from the memory

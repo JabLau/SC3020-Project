@@ -66,7 +66,7 @@ void testBPTree(){
 
     BPTree bt = BPTree(3);
     const int listSize = 25;
-    tempStruct list[listSize];
+    tempStruct *list= new tempStruct[listSize];
 
     addressInfo addr;
     int *absol_addr;
@@ -86,7 +86,7 @@ void testBPTree(){
 int main()
 {
     //testBPTree();
-
+    
     // Settings
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB

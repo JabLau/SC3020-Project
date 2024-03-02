@@ -17,7 +17,7 @@ public:
     int blockCount = 0;
 
     vector<string> strSplitByDelim (const string &s, char delim);
-    void load_data(DiskManager &disk);
+    std::vector<tempStruct> load_data(DiskManager &disk);
 };
 
 

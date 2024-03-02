@@ -1,7 +1,9 @@
 #pragma once
 #define DiskManager_H
 #include "record.h"
+#include "tempStruct.h"
 #include <queue>
+#include <vector>
 
 // Struct of full address info
 struct addressInfo {
@@ -30,5 +32,6 @@ public:
     int *getBlockAddress(int blockId);
     void printAllRecords();
     addressInfo getNextAvailableAddress();
+	std::vector<tempStruct> addr_NumVotes_arr();
 };
 

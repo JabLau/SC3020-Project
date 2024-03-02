@@ -7,6 +7,7 @@
 
 #include "Node.h"
 #include "tempStruct.h"
+#include <vector>
 
 
 class BPTree {
@@ -17,7 +18,8 @@ public:
     BPTree(int maxKeys);
 
 //    bool insertKey(int key, int* address);
-    bool bulkLoad(tempStruct *list, int size);
+ //   bool bulkLoad(tempStruct *list, int size);
+    bool bulkLoad(std::vector<tempStruct> &list, int size);
     void ensureNodeValid(Node*, Node*);
     void printTree();
 

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <iostream>
 #include <queue>
-
+#include <vector>
 #include "Record.h"
 
 using namespace std;
@@ -58,7 +58,7 @@ BPTree::BPTree(int maxKeys) {
 //    return false;
 //}
 
-bool BPTree::bulkLoad(tempStruct *list, int size) {
+bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
 
     int level; // Track what level we are on curr
     Node* currNode; //Current node we working on

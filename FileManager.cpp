@@ -5,6 +5,8 @@
 #include "FileManager.h"
 #include "Record.h"
 #include "DiskManager.h"
+#include "tempStruct.h"
+#include <iostream>
 
 using namespace std;
 
@@ -21,10 +23,11 @@ vector<string> FileManager::strSplitByDelim(const string &s, char delim) {
     return result;
 }
 
-void FileManager::load_data(DiskManager &disk) {
+vector<tempStruct> FileManager::load_data(DiskManager &disk) {
     // Load data.tsv file into
     ifstream infile("../data.tsv");
-
+    //define array here.
+    std::vector<tempStruct> addr_NumVotes_list;
     // Line-based parsing, using string streams
     // temp variable to store the line
     string line;
@@ -47,6 +50,8 @@ void FileManager::load_data(DiskManager &disk) {
         // Store record in disk
         addressInfo addr = disk.storeRecord(Record(col[0], col[1], col[2]));
         // If record is stored successfully, increment totalRecords
+        tempStruct s1 = {stoi(col[2]), disk.getBlockAddress(addr.blockId)+addr.offset};
+        addr_NumVotes_list.push_back(s1);
         if (addr.blockId != -1 && addr.offset != -1){
             recordCount++;
         }
@@ -64,6 +69,7 @@ void FileManager::load_data(DiskManager &disk) {
 //            break;
 //        }
     }
+    return addr_NumVotes_list;
 }
 
 

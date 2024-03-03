@@ -29,6 +29,7 @@ DiskManager::DiskManager(int blockSize, int totalSize) {
 
 // Destructor
 DiskManager::~DiskManager() {
+    cout << "Freeing Disk Manager" << this->memStartAddress << endl;
 	free(this->memStartAddress);
 }
 

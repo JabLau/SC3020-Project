@@ -30,7 +30,7 @@ void printMem(int* addr, int size) {
     printf("\n\n");
 }
 
-vector<tempStruct> experiment_1(DiskManager disk){
+vector<tempStruct> experiment_1(DiskManager* disk){
     // Load the data from disk
     FileManager fm = FileManager();
     vector<tempStruct> unsorted_list = fm.load_data(disk);
@@ -56,7 +56,7 @@ vector<tempStruct> experiment_1(DiskManager disk){
     //• the size of a record;
     cout << "The size of a record: " << sizeof(Record) << endl;
     //• the number of records stored in a block;
-    cout << "The number of records stored in a block: " << disk.blockSize / sizeof(Record) << endl;
+    cout << "The number of records stored in a block: " << disk->blockSize / sizeof(Record) << endl;
     //• the number of blocks for storing the data;
     cout << "The number of blocks for storing the data: " << fm.blockCount << endl;
 
@@ -218,7 +218,7 @@ int main()
     DiskManager disk = DiskManager(blockSize, totalMemSize);
     
     // Experiment 1
-    std::vector<tempStruct> unsorted_list = experiment_1(disk);
+    std::vector<tempStruct> unsorted_list = experiment_1(&disk);
     int n=unsorted_list.size();
     std::cout <<"Length of Unsorted List = "<<n <<endl;
     heapSort(unsorted_list, n);

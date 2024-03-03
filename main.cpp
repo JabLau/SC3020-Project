@@ -218,13 +218,17 @@ int main()
     DiskManager disk = DiskManager(blockSize, totalMemSize);
     
     // Experiment 1
-    std::vector<tempStruct> unsorted_list = experiment_1(&disk);
+    vector<tempStruct> unsorted_list = experiment_1(&disk);
     int n=unsorted_list.size();
-    std::cout <<"Length of Unsorted List = "<<n <<endl;
+    cout <<"Length of Unsorted List = "<<n <<endl;
     heapSort(unsorted_list, n);
     //bubbleSort(unsorted_list, n);
-    std::cout <<"good success" <<endl;
+    cout <<"good success" << endl;
 
+    for (int i=0;i < 100000; i++) {
+        cout << i << ":" << unsorted_list[i].key << ",";
+    }
+    cout << endl;
 
 //    // Loop and print each memory byte
 //    int* startAddr = disk.memStartAddress;

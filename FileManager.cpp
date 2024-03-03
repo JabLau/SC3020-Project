@@ -33,7 +33,9 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
     string line;
     // temp var for line num
     unsigned int line_num = 0;
-    // Read the file line by line
+    // Read the file line by 
+    cout << "Starting File Read" << endl;
+    cout << "Current Line: " << endl;
     while ( getline(infile, line) )
     {
         // Process each line
@@ -63,7 +65,7 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
 
         // Increment line number
         line_num++;
-        cout << line_num << endl;
+        cout << "\r" <<  line_num;
 
 //        // Break after 10 lines
 //        if (line_num > 10) {

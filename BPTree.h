@@ -27,6 +27,10 @@ public:
     Node* findStartingNodeForRange(int value);
     void findByRange(int, int);
     void findByValue(int);
+
+    void deleteNodes(int value);
+
+    int getLowerBoundOfSubTree(Node*);
 };
 
 #endif //SC3020_PROJECT_BPTREE_H

@@ -77,7 +77,7 @@ bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
     int is500 = 0;
     // cout << level << "|" << totalNodes << "|" << currNode << endl;
     for (int i=0;i < size;i++) {
-        if (list[i].key >= 30000 && list[i].key <= 40000) {
+        if (list[i].key == 1000) {
             is500++;
         }
 
@@ -143,24 +143,26 @@ bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
             if (nodeFirstPtr) {
                 // Add first child, only pointer
                 currNode->addFirstChild((int*)navNode);
+                navNode->setParentPointer(currNode);
                 nodeFirstPtr = false;
             }else {
                 // Add first key and pointer to node
-                currNode->addChild(navNode->keys[0], (int*)navNode);
+                currNode->addChild(getLowerBoundOfSubTree(navNode), (int*)navNode);
+                navNode->setParentPointer(currNode);
             }
 
             if (level == 2) {
-                    // Currently indexing level 1, leaf node
-                    navNode = (Node*) navNode->getNextNodePointer();
+                // Currently indexing level 1, leaf node
+                navNode = (Node*) navNode->getNextNodePointer();
+            }else {
+                // Indexing level 2 and above
+                if(!prevFifoQueue->empty()) {
+                    navNode = prevFifoQueue->front();
+                    prevFifoQueue->pop();
                 }else {
-                    // Indexing level 2 and above
-                    if(!prevFifoQueue->empty()) {
-                        navNode = prevFifoQueue->front();
-                        prevFifoQueue->pop();
-                    }else {
-                        navNode = nullptr;
-                    }
+                    navNode = nullptr;
                 }
+            }
         }while (navNode != nullptr); //navNode check for leaf node
 
         // Check if last node has floor(n/2) pointers
@@ -180,6 +182,13 @@ bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
     cout << "Total Nodes in B+Tree:" << totalNodes << endl;
 
     return true;
+}
+
+int BPTree::getLowerBoundOfSubTree(Node* curr) {
+    while (curr->leafNode == false) {
+        curr = (Node*) curr->pointers[0];
+    }
+    return curr->keys[0];
 }
 
 void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
@@ -395,4 +404,86 @@ Node* BPTree::findStartingNodeForRange(int value) {
 
     // Could not find value
     return nullptr;
+}
+
+void BPTree::deleteNodes(int value) {
+    Node* currNode;
+    Node* parentNode;
+    Node* leftNode;
+    Node* rightNode;
+    currNode = findNodeWithValue(value);
+
+    // At Leaf Node
+    if (currNode != nullptr) {
+        currNode->deleteKey(value);
+        parentNode = currNode->getParentPointer();
+        if (currNode->nodeValid() == false && parentNode != nullptr) {
+            // Get Sibling Nodes
+            int* tempCurrNodePtr = (int*) currNode; //Get int ptr ver of currNode for comparison
+            for (int i=0;i <= parentNode->currKeyCount;i++) {
+                if (parentNode->pointers[i] == tempCurrNodePtr) {
+                    if (i > 0) {
+                        leftNode = (Node*) parentNode->pointers[i-1]; 
+                    }
+
+                    if (i < parentNode->currKeyCount) {
+                        rightNode = (Node*) parentNode->pointers[i+1]; 
+                    }
+                }
+            }
+            bool borrowed = false;
+            tempStruct borrowedStruct;
+            int* changed; //Node that value has been changed and parent need to update
+            // Case 1: Borrow from Siblings
+            if (leftNode != nullptr) {
+                if (leftNode->borrowKeyCheck()) {
+                    borrowedStruct = leftNode->borrowKeyCauseDeletion(true);
+                    borrowed = true;
+                    // Insert to front of currNode
+                    currNode->addChildFront(borrowedStruct.key, borrowedStruct.address);
+                    changed =(int*) currNode;
+                }
+            }
+
+            if (rightNode != nullptr && !borrowed) {
+                if (rightNode->borrowKeyCheck()) {
+                    borrowedStruct = rightNode->borrowKeyCauseDeletion(false);
+                    borrowed = true;
+                    // Insert to back of currentNode
+                    currNode->addChild(borrowedStruct.key,borrowedStruct.address);
+                    changed =(int*) rightNode;
+                }
+            }
+            
+            // Update B+ Tree Parents for Borrowed Nodes
+            if (borrowed) {
+                Node* navParent = ((Node*)changed)->getParentPointer();
+                while (navParent != nullptr) {
+                    for (int i=0;i<navParent->currKeyCount;i++) {
+                        if (navParent->pointers[i] == changed) {
+                            if (i > 0) {
+                                navParent->keys[i-1] = getLowerBoundOfSubTree((Node*) changed);
+                                break;
+                            }
+                        }
+                    }
+                    changed =(int*) navParent;
+                    navParent = navParent->getParentPointer();
+                }
+            }
+
+            if (!borrowed) {
+                // Case 2: Merge with Siblings (Left if have, right if dont have)
+                // Need to explore further
+                if (leftNode != nullptr && leftNode->borrowKeyCheck() == false) {
+                    leftNode->mergeNode(currNode);
+
+                }else {
+                    // Merge with right
+                    // Do checks if there is a right node? but if this fails how?
+                    currNode->mergeNode(rightNode);
+                }
+            }
+        }
+    }
 }

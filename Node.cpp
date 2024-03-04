@@ -95,6 +95,18 @@ int* Node::getNextNodePointer() {
     return nullptr;
 }
 
+void Node::setParentPointer(Node* ptr) {
+    this->parentPtr = ptr;
+    this->parentSet = true;
+}
+
+Node* Node::getParentPointer() {
+    if (this->parentSet == true) {
+        return this->parentPtr;
+    }else {
+        return nullptr;
+    }
+}
 void Node::printNode() {
     if (currKeyCount > 0) {
         for (int i=0; i < this->currKeyCount;i++) {
@@ -127,6 +139,7 @@ tempStruct Node::getKeyForTransfer() {
     return rtn;
 }
 
+// Receive Key From Left Sibling
 void Node::keyTransfer(int key, int* address) {
     if (this->leafNode) {
         // Check if has any keys
@@ -150,10 +163,11 @@ void Node::keyTransfer(int key, int* address) {
                 this->pointers[i+1] = this->pointers[i];
             }
         }// Retrieve Key to store as first key
+
+        // Get Lower Bound of Subtree
         Node* tempNode = (Node*) this->pointers[0];
-        Record* tempRecord = (Record*) tempNode->pointers[0];
         this->pointers[0] = address;
-        this->keys[0] = tempRecord->numVotes;
+        this->keys[0] = getLowerBoundKey(tempNode);
         this->pointers[1] = (int*) tempNode;
     }
     this->currKeyCount++;
@@ -166,5 +180,113 @@ bool Node::nodeValid() {
     }else {
         // Non-leaf node check for floor(n/2)
         return (this->currKeyCount >= floor(this->maxKeys/2));
+    }
+}
+
+// For Leaf Node Deletion Only!
+void Node::deleteKey(int key) {
+    if (this->leafNode) {
+        for (int i = 0; i < this->currKeyCount;i++) {
+            if (this->keys[i] == key) {
+                // If last key dont need do anything
+                if (i != this->currKeyCount-1) {
+                    // Not Last Key, need to shift stuff up
+                    // Use currKeyCount-1 as we will be replacing curr key with next key, thus at 
+                    // currKeyCount-1 we will be replacing with the last key alr
+                    for (int k=i;k < (this->currKeyCount-1);k++) {
+                        this->keys[k] = this->keys[k+1];
+                        this->pointers[k] = this->pointers[k+1];
+                    }
+                }
+                this->currKeyCount--;
+                break;
+            }
+        }
+    }
+}
+
+// Leaf node only
+bool Node::borrowKeyCheck() {
+    // If Borrowing equivalent to -1 key count
+    if (this->leafNode) {
+        // Leaf Node check for floor((n+1)/2)
+        return (this->currKeyCount-1 >= floor((this->maxKeys+1)/2));
+    }else {
+        // Non-leaf node check for floor(n/2)
+        return (this->currKeyCount-1 >= floor(this->maxKeys/2));
+    }
+} 
+// When deletion and need to borrow key, call this from sibling node
+tempStruct Node::borrowKeyCauseDeletion(bool leftSibling) {
+    tempStruct t;
+    if (leftSibling) {
+        // Borrow Last Node
+        return getKeyForTransfer();
+    }else {
+        // Borrow First Node
+        return getFirstPointerForBorrow();
+    }
+}
+
+tempStruct Node::getFirstPointerForBorrow() {
+    tempStruct rtn = tempStruct();
+    if (this->leafNode) {
+        // Leaf Node
+        // Return last key and second last pointer
+        rtn.key = keys[0];
+        rtn.address = pointers[0];
+        for (int i=0;i < (this->currKeyCount-1);i++) {
+            this->keys[0] = this->keys[i+1];
+            this->pointers[0] = this->pointers[i+1];
+        }
+    } else {
+        // Not Leaf Node
+        // Return last key and  last pointer
+        rtn.key = 0;
+        rtn.address = pointers[0];
+
+        this->pointers[0] = this->pointers[1];
+        for (int i=0;i < (this->currKeyCount-1);i++) {
+            this->keys[0] = this->keys[i+1];
+            this->pointers[i+1] = this->pointers[i+2];
+        }
+    }
+    this->currKeyCount--;
+    return rtn;
+}
+
+void Node::mergeNode(Node* mergeNode) {
+    if (this->leafNode) {
+        for (int i = 0; i < mergeNode->currKeyCount;i++) {
+            this->keys[this->currKeyCount] = mergeNode->keys[i];
+            this->pointers[this->currKeyCount] = mergeNode->pointers[i];
+            this->currKeyCount++;
+        }
+    }else {
+        for (int i = 0; i <= mergeNode->currKeyCount;i++) {
+            this->keys[this->currKeyCount] = getLowerBoundKey((Node*) mergeNode->pointers[i]);
+            this->pointers[this->currKeyCount+1] = mergeNode->pointers[i];
+            this->currKeyCount++;
+        }
+    }
+}
+
+int Node::getLowerBoundKey(Node* curr) {
+    while (curr->leafNode == false) {
+        curr =(Node*) curr->pointers[0];
+    }
+    return curr->keys[0];
+}
+
+// For leaf node only
+void Node::addChildFront(int key, int* address) {
+    if (this->leafNode) {
+        for (int i=0;i < this->currKeyCount;i++) {
+            this->keys[i+1] = this->keys[i];
+            this->pointers[i+1] = this->pointers[i];
+        }
+        this->keys[0] = key;
+        this->pointers[0] = address;
+        this->currKeyCount++;
     }
 }

@@ -14,6 +14,8 @@ public:
     int* *pointers; // I want to change to Node* but we also store disk address how ah?
     int maxKeys;
     int currKeyCount = 0;
+    Node* parentPtr; // Might be unsafe, cause comparing nullptr is inconsistent!
+    bool parentSet = false;
 
     Node(int maxKeys);
     ~Node();
@@ -30,10 +32,26 @@ public:
     void setNextNodePointer(int*);
     int* getNextNodePointer();
     
+    void setParentPointer(Node*);
+    Node* getParentPointer();
+
     tempStruct getKeyForTransfer();
     void keyTransfer(int key, int* address);
 
     bool nodeValid();
+
+    void deleteKey(int);
+
+    // For Placing Borrowed Key
+    void addChildFront(int key, int* address); // 2nd onwards has key value
+
+    // For Borrowing from Sibling Nodes
+    bool borrowKeyCheck();
+    tempStruct borrowKeyCauseDeletion(bool);
+    tempStruct getFirstPointerForBorrow();
+
+    int getLowerBoundKey(Node*);
+    void mergeNode(Node*)
 };
 
 

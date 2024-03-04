@@ -406,13 +406,16 @@ Node* BPTree::findStartingNodeForRange(int value) {
     return nullptr;
 }
 
-void BPTree::deleteNodes(int value) {
+bool BPTree::deleteNodes(int value) {
     Node* currNode;
     Node* parentNode;
     Node* leftNode;
     Node* rightNode;
     currNode = findNodeWithValue(value);
 
+    if (currNode == nullptr) {
+        return false;
+    }
     // At Leaf Node
     if (currNode != nullptr) {
         currNode->deleteKey(value);
@@ -477,7 +480,6 @@ void BPTree::deleteNodes(int value) {
                 // Need to explore further
                 if (leftNode != nullptr && leftNode->borrowKeyCheck() == false) {
                     leftNode->mergeNode(currNode);
-
                 }else {
                     // Merge with right
                     // Do checks if there is a right node? but if this fails how?
@@ -486,4 +488,5 @@ void BPTree::deleteNodes(int value) {
             }
         }
     }
+    return true;
 }

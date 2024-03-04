@@ -36,7 +36,7 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
     // Read the file line by 
     cout << "Starting File Read" << endl;
     cout << "Current Line: " << endl;
-    while ( getline(infile, line) )
+    while (getline(infile, line) )
     {
         // Process each line
         // Delimiter is tab
@@ -74,5 +74,4 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
     }
     return addr_NumVotes_list;
 }
-
 

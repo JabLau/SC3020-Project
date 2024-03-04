@@ -223,12 +223,18 @@ int main()
     cout <<"Length of Unsorted List = "<<n <<endl;
     heapSort(unsorted_list, n);
     //bubbleSort(unsorted_list, n);
-    cout <<"good success" << endl;
+    cout <<"Sort Complete" << endl;
 
-    for (int i=0;i < 100000; i++) {
-        cout << i << ":" << unsorted_list[i].key << ",";
-    }
-    cout << endl;
+    BPTree bt = BPTree(3);
+    bt.bulkLoad(unsorted_list, n);
+    cout << "Retrieve numVotes = 500" << endl;
+    bt.findByValue(500);
+    cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
+    bt.findByRange(30000,40000);
+    // for (int i=0;i < 100000; i++) {
+    //     cout << i << ":" << unsorted_list[i].key << ",";
+    // }
+    // cout << endl;
 
 //    // Loop and print each memory byte
 //    int* startAddr = disk.memStartAddress;

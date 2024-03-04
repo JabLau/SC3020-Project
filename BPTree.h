@@ -24,7 +24,9 @@ public:
     void printTree();
 
     Node* findNodeWithValue(int value);
+    Node* findStartingNodeForRange(int value);
     void findByRange(int, int);
+    void findByValue(int);
 };
 
 #endif //SC3020_PROJECT_BPTREE_H

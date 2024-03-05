@@ -270,7 +270,8 @@ void Node::mergeNode(Node* mergeNode) {
     }else {
         for (int i = 0; i <= mergeNode->currKeyCount;i++) {
             this->keys[this->currKeyCount] = getLowerBoundKey((Node*) mergeNode->pointers[i]);
-            ((Node*)mergeNode->pointers[i])->setParentPointer(this);
+            Node* childNode = (Node*)mergeNode->pointers[i];
+            childNode->setParentPointer(this);
             this->pointers[this->currKeyCount+1] = mergeNode->pointers[i];
             this->currKeyCount++;
         }
@@ -299,7 +300,7 @@ void Node::addChildFront(int key, int* address) {
 
 // For removing child node
 void Node::removeChildNode(int* ptr) {
-    for (int i=0;i<this->currKeyCount;i++) {
+    for (int i=0;i<=this->currKeyCount;i++) {
         if (this->pointers[i] == ptr) {
             if (i > 0) {
                 // Move Keys and Pointers down
@@ -307,6 +308,16 @@ void Node::removeChildNode(int* ptr) {
                     this->keys[k-1] = this->keys[k];
                     this->pointers[k] = this->pointers[k+1];
                 }
+            /*    1 < 3
+                1,2 < Valid k values
+                0 1 2 3 Original Pointers
+            1   0 2 2 3
+            2   0 2 3 3
+
+                1 2 3 Original Keys
+            1   2 2 3
+            2   2 3 3 
+                |1|2|3| */
             }else {
                 // i == 0
                 // Run Key count - 1 times as removing 1 key
@@ -315,7 +326,21 @@ void Node::removeChildNode(int* ptr) {
                     this->pointers[k] = this->pointers[k+1];
                 }
                 // Have to move last pointer down as for loop doesnt cover last pointer in pointer list
-                this->pointers[this->currKeyCount-1] = this->pointers[this->currKeyCount];
+                this->pointers[(this->currKeyCount-1)] = this->pointers[this->currKeyCount];
+                /* 0 < (3-1) = 0 < 2
+                0,1 < Valid k values
+                
+                0 1 2 3 Original Pointers
+            0   1 1 2 3
+            1   0 2 2 3
+            currKey-1 = 2
+                0 2 2 3
+        currkey 0 2 3 3
+
+                1 2 3 Original Keys
+            0   2 2 3
+            1   2 3 3 
+                */
             }break;
         }
     }

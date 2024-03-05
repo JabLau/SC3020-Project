@@ -253,8 +253,8 @@ Node* BPTree::findNodeWithValue(int value) {
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
-        for (int i=0;i < currNode->currKeyCount;i++) {
-            if (value <= currNode->keys[i]) {
+        for (int i=0;i <= currNode->currKeyCount;i++) { 
+            if (value < currNode->keys[i]) {
                 currNode = (Node*) currNode->pointers[i];
                 foundNextNode = true;
                 break;
@@ -356,8 +356,8 @@ Node* BPTree::findStartingNodeForRange(int value) {
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
-        for (int i=0;i < currNode->currKeyCount;i++) {
-            if (value <= currNode->keys[i]) {
+        for (int i=0;i <= currNode->currKeyCount;i++) {
+            if (value < currNode->keys[i]) {
                 currNode = (Node*) currNode->pointers[i];
                 foundNextNode = true;
                 break;
@@ -493,7 +493,9 @@ bool BPTree::deleteNodes(int value) {
                     leftNode->mergeNode(currNode);
                     removedNode = currNode;
                     leftNode->setNextNodePointer(currNode->getNextNodePointer());
-                }else {
+                }else if (rightNode == nullptr) {
+                    cout << "yo wtf going on here?" << endl;
+                }else{
                     // Merge with right
                     // Do checks if there is a right node? but if this fails how?
                     currNode->mergeNode(rightNode);
@@ -538,7 +540,7 @@ bool BPTree::deleteNodes(int value) {
 
                                     if (i < parentNode->currKeyCount) {
                                         rightNode = (Node*) parentNode->pointers[i+1]; 
-                                    }
+                                    }break;
                                 }
                             }
                             bool borrowed = false;
@@ -549,6 +551,9 @@ bool BPTree::deleteNodes(int value) {
                                     borrowed = true;
                                     // Insert to back of currentNode
                                     navParent->addChild(borrowedStruct.key,borrowedStruct.address);
+                                    // Update child node parent
+                                    Node* childNode = (Node*) borrowedStruct.address;
+                                    childNode->setParentPointer(navParent);
                                     updatedNode =(int*) navParent;
                                 }
                             }
@@ -559,6 +564,9 @@ bool BPTree::deleteNodes(int value) {
                                     borrowed = true;
                                     // Insert to back of currentNode
                                     navParent->addChild(borrowedStruct.key,borrowedStruct.address);
+                                    // Update child node parent
+                                    Node* childNode = (Node*) borrowedStruct.address;
+                                    childNode->setParentPointer(navParent);
                                     updatedNode =(int*) rightNode;
                                 }
                             }

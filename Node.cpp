@@ -303,20 +303,20 @@ void Node::removeChildNode(int* ptr) {
         if (this->pointers[i] == ptr) {
             if (i > 0) {
                 // Move Keys and Pointers down
-                for (int k=i;k <= this->currKeyCount;i++) {
+                for (int k=i;k < this->currKeyCount;k++) {
                     this->keys[k-1] = this->keys[k];
                     this->pointers[k] = this->pointers[k+1];
                 }
             }else {
                 // i == 0
                 // Run Key count - 1 times as removing 1 key
-                for (int k=i;k < this->currKeyCount-1;i++) {
+                for (int k=i;k < this->currKeyCount-1;k++) {
                     this->keys[k] = this->keys[k+1];
                     this->pointers[k] = this->pointers[k+1];
                 }
                 // Have to move last pointer down as for loop doesnt cover last pointer in pointer list
                 this->pointers[this->currKeyCount-1] = this->pointers[this->currKeyCount];
-            }
+            }break;
         }
     }
     this->currKeyCount--;

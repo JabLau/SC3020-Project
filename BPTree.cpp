@@ -437,7 +437,7 @@ bool BPTree::deleteNodes(int value) {
 
                     if (i < parentNode->currKeyCount) {
                         rightNode = (Node*) parentNode->pointers[i+1]; 
-                    }
+                    }break;
                 }
             }
             bool borrowed = false;

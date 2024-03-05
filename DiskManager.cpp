@@ -89,8 +89,10 @@ int DiskManager::tabulateBlockUsageNested(vector<vector<int*>> recordAddresses) 
         }
 
         return blockIds.size();
-}
+    }
 
+    return 0;
+}
 
 // Method to get next available memory address
 addressInfo DiskManager::getNextAvailableAddress() {

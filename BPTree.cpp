@@ -60,7 +60,7 @@ BPTree::BPTree(int maxKeys) {
 
 bool BPTree::bulkLoad(vector<tempStruct2> &list, int size) {
 
-    int level; // Track what level we are on curr
+    int level = 0; // Track what level we are on curr
     Node* currNode; //Current node we working on
     Node *prevNode = nullptr; // Previous Node
 
@@ -208,9 +208,9 @@ void BPTree::printTree() {
     navNode->printNode();
 }
 
-vector<int*>* BPTree::findByValue(int value) {
+vector<int*> BPTree::findByValue(int value) {
     Node *currNode = this->findNodeWithValue(value);
-    vector<int*> *defaultRtn = new vector<int*>;
+    vector<int*> defaultRtn = {};
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
         return defaultRtn;
@@ -224,7 +224,7 @@ vector<int*>* BPTree::findByValue(int value) {
     do {
         for (int i=0;i < currNode->currKeyCount;i++) {
             if (currNode->keys[i] == value) {
-                return (vector<int*>*) currNode->pointers[i];
+                return (*(vector<int*>*) currNode->pointers[i]);
             }else if (currNode->keys[i] > value) {
                 overshot = true;
                 break;

@@ -86,8 +86,8 @@ void testBPTree(vector<tempStruct> &arr){
     //     list[i].key = r1.numVotes;
     //     list[i].address = absol_addr;
     // }
-    bt.bulkLoad(arr, arr.size());
-    bt.findByRange(100,101);
+    //bt.bulkLoad(arr, arr.size());
+    //bt.findByRange(100,101);
 }
 
 int partition(vector<tempStruct> &arr,int low,int high)
@@ -226,7 +226,7 @@ int main()
 
 
     // new vector
-    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>();
+    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
     int j=0;
 
     // Allocate into unique linked list
@@ -245,10 +245,12 @@ int main()
         }
     }
 
-//    BPTree bt = BPTree(3);
-//    bt.bulkLoad(unsorted_list, n);
+    BPTree bt = BPTree(3);
+    bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;
-//    bt.findByValue(500);
+    vector<int*> find500 = bt.findByValue(500);
+    vector<vector<int*>> findRangeVal = bt.findByRange(30000,40000);
+
 //    cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
 //    bt.findByRange(30000,40000);
 //    // cout << "Retrieve numVotes = 1000" << endl;

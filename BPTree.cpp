@@ -58,7 +58,7 @@ BPTree::BPTree(int maxKeys) {
 //    return false;
 //}
 
-bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
+bool BPTree::bulkLoad(vector<tempStruct2> &list, int size) {
 
     int level; // Track what level we are on curr
     Node* currNode; //Current node we working on
@@ -92,7 +92,7 @@ bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
             totalNodes++;
             // cout << level << "|" << totalNodes << "|" << nextNode << endl;
         }
-        currNode->insertLeafNodeKey(list[i].key,list[i].address);
+        currNode->insertLeafNodeKey(list[i].key, (int*) &list[i].addresses);
     }
 
     cout << "500s:" << is500 << endl;
@@ -208,13 +208,12 @@ void BPTree::printTree() {
     navNode->printNode();
 }
 
-void BPTree::findByValue(int value) {
-    // Implement checks to prevent end < start?
-
+vector<int*>* BPTree::findByValue(int value) {
     Node *currNode = this->findNodeWithValue(value);
+    vector<int*> *defaultRtn = new vector<int*>;
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
-        return;
+        return defaultRtn;
     }
 
     double totalAvgRating = 0; 
@@ -224,14 +223,11 @@ void BPTree::findByValue(int value) {
     Record* tempRecord;
     do {
         for (int i=0;i < currNode->currKeyCount;i++) {
-            if (currNode->keys[i] >= value) {
-                if (currNode->keys[i] > value) {
-                    overshot = true;
-                    break;
-                }
-                tempRecord = (Record*) currNode->pointers[i];
-                totalAvgRating += tempRecord->avgRating;
-                recordCount++;
+            if (currNode->keys[i] == value) {
+                return (vector<int*>*) currNode->pointers[i];
+            }else if (currNode->keys[i] > value) {
+                overshot = true;
+                break;
             }
         }
 
@@ -241,9 +237,7 @@ void BPTree::findByValue(int value) {
         currNode = (Node*) currNode->getNextNodePointer();
     }while (currNode != nullptr);
 
-    // Print Results
-    cout << "Total Average of Average ratings:" << (totalAvgRating/recordCount) << endl;
-    cout << "Total Records Accessed:" << recordCount << endl;
+    return defaultRtn;
 }
 
 Node* BPTree::findNodeWithValue(int value) {
@@ -311,13 +305,14 @@ Node* BPTree::findNodeWithValue(int value) {
     return nullptr;
 }
 
-void BPTree::findByRange(int start, int end) {
+vector<vector<int*>> BPTree::findByRange(int start, int end) {
     // Implement checks to prevent end < start?
 
     Node *currNode = this->findStartingNodeForRange(start);
+    vector<vector<int*>> defaultRtn = {};
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
-        return;
+        return defaultRtn;
     }
 
     double totalAvgRating = 0; 
@@ -332,9 +327,10 @@ void BPTree::findByRange(int start, int end) {
                     overshot = true;
                     break;
                 }
-                tempRecord = (Record*) currNode->pointers[i];
-                totalAvgRating += tempRecord->avgRating;
-                recordCount++;
+                defaultRtn.push_back((*(vector<int*>*) currNode->pointers[i]));
+//                tempRecord = (Record*) currNode->pointers[i];
+//                totalAvgRating += tempRecord->avgRating;
+//                recordCount++;
             }
         }
 
@@ -344,9 +340,7 @@ void BPTree::findByRange(int start, int end) {
         currNode = (Node*) currNode->getNextNodePointer();
     }while (currNode != nullptr);
 
-    // Print Results
-    cout << "Total Average of Average ratings:" << (totalAvgRating/recordCount) << endl;
-    cout << "Total Records Accessed:" << recordCount << endl;
+    return defaultRtn;
 }
 
 Node* BPTree::findStartingNodeForRange(int value) {

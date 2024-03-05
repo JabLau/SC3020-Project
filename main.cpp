@@ -205,7 +205,6 @@ void bubbleSort(vector<tempStruct> &arr, int n)
     }
 }
 
-
 int main()
 {
     //testBPTree();
@@ -225,22 +224,43 @@ int main()
     //bubbleSort(unsorted_list, n);
     cout <<"Sort Complete" << endl;
 
-    BPTree bt = BPTree(3);
-    bt.bulkLoad(unsorted_list, n);
-    cout << "Retrieve numVotes = 500" << endl;
-    bt.findByValue(500);
-    cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
-    bt.findByRange(30000,40000);
-    // cout << "Retrieve numVotes = 1000" << endl;
-    // bt.findByValue(1000);
-    bool complete = true;
-    int counter = 0;
-    do {
-        counter++;
-        complete = bt.deleteNodes(52);
-    }while (complete);
-    counter--; //Last run nvr delete
-    cout << "Deleted 52: " << counter << endl;
+
+    // new vector
+    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>();
+    int j=0;
+
+    // Allocate into unique linked list
+    for (int i=0;i < n; i++) {
+        // Check if uniqueArr is empty
+        if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
+            // Create a tempStruct2
+            tempStruct2 temp;
+            temp.key = unsorted_list[i].key;
+            temp.addresses.push_back(unsorted_list[i].address);
+            // Put into uniqueArr
+            uniqueArr->push_back(temp);
+            j++;
+        } else {
+            (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
+        }
+    }
+
+//    BPTree bt = BPTree(3);
+//    bt.bulkLoad(unsorted_list, n);
+//    cout << "Retrieve numVotes = 500" << endl;
+//    bt.findByValue(500);
+//    cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
+//    bt.findByRange(30000,40000);
+//    // cout << "Retrieve numVotes = 1000" << endl;
+//    // bt.findByValue(1000);
+//    bool complete = true;
+//    int counter = 0;
+//    do {
+//        counter++;
+//        complete = bt.deleteNodes(52);
+//    }while (complete);
+//    counter--; //Last run nvr delete
+//    cout << "Deleted 52: " << counter << endl;
     // for (int i=0;i < 100000; i++) {
     //     cout << i << ":" << unsorted_list[i].key << ",";
     // }

@@ -39,6 +39,59 @@ int* DiskManager::getBlockAddress(int blockId) {
     return this->memStartAddress + (blockId * (this->blockSize/4));
     }
 
+int DiskManager::getBlockId(int* address) {
+    return (address - this->memStartAddress) / (this->blockSize/4);
+}
+
+bool DiskManager::checkExist(vector<int> temp, int key){
+    for (int i : temp){
+        if (i == key){
+            return true;
+        }
+    }
+    return false;
+}
+
+// Method to tabulate vector of record addresses into blocks used
+int DiskManager::tabulateBlockUsage(vector<int*> recordAddresses) {
+    // Vector to store block ids
+    vector<int> blockIds;
+
+    // Loop thru vector of addresses
+    for (int i=0; i<recordAddresses.size(); i++) {
+        // Convert address to block id
+        int blockId = getBlockId(recordAddresses[i]);
+        if (checkExist(blockIds, blockId)){
+            continue;
+        }
+        else{
+            blockIds.push_back(blockId);
+        }
+    }
+
+    return blockIds.size();
+}
+
+int DiskManager::tabulateBlockUsageNested(vector<vector<int*>> recordAddresses) {
+    vector<int> blockIds;
+
+    // 2 loops
+    // Loop thru vector of vectors
+    for (int i=0; i<recordAddresses.size(); i++) {
+        for (int k=0; k<recordAddresses[i].size(); k++) {
+            // Convert address to block id
+            int blockId = getBlockId((recordAddresses[i][k]));
+            if (checkExist(blockIds, blockId)) {
+                continue;
+            }else{
+                blockIds.push_back(blockId);
+            }
+        }
+
+        return blockIds.size();
+}
+
+
 // Method to get next available memory address
 addressInfo DiskManager::getNextAvailableAddress() {
     // Loop through freeSpacePerBlock array to find the first block with at least 1 byte of free space

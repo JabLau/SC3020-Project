@@ -33,5 +33,15 @@ public:
     void printAllRecords();
     addressInfo getNextAvailableAddress();
 	std::vector<tempStruct> addr_NumVotes_arr();
+
+    int tabulateBlockUsage(vector<tempStruct> recordAddresses);
+
+    int getBlockId(int *address);
+
+    bool checkExist(vector<int> temp, int key);
+
+    int tabulateBlockUsage(vector<int *> recordAddresses);
+
+    int tabulateBlockUsageNested(vector<vector<int *>> recordAddresses);
 };
 

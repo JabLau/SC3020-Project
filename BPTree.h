@@ -19,14 +19,14 @@ public:
 
 //    bool insertKey(int key, int* address);
  //   bool bulkLoad(tempStruct *list, int size);
-    bool bulkLoad(std::vector<tempStruct> &list, int size);
+    bool bulkLoad(std::vector<tempStruct2> &list, int size);
     void ensureNodeValid(Node*, Node*);
     void printTree();
 
     Node* findNodeWithValue(int value);
     Node* findStartingNodeForRange(int value);
-    void findByRange(int, int);
-    void findByValue(int);
+    vector<vector<int*>> findByRange(int, int);
+    vector<int*> findByValue(int);
 
     bool deleteNodes(int value);
 

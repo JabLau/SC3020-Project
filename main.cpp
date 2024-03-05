@@ -231,8 +231,12 @@ int main()
     bt.findByValue(500);
     cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
     bt.findByRange(30000,40000);
-    cout << "Retrieve numVotes = 1000" << endl;
-    bt.findByValue(1000);
+    // cout << "Retrieve numVotes = 1000" << endl;
+    // bt.findByValue(1000);
+    bool complete = true;
+    do {
+        complete = bt.deleteNodes(52);
+    }while (complete);
     // for (int i=0;i < 100000; i++) {
     //     cout << i << ":" << unsorted_list[i].key << ",";
     // }

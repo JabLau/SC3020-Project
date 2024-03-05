@@ -290,6 +290,10 @@ Node* BPTree::findNodeWithValue(int value) {
         if (foundValue) {
             break; // Found, now GTFO of loop
         }
+
+        if (currNode->keys[0] > value) {
+            break; // Overshot liao, means cannot find
+        }
         currNode = (Node*) currNode->getNextNodePointer(); // Go to next node
     }while (currNode != nullptr);
     // Terminate if found the value or

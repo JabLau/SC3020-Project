@@ -234,9 +234,13 @@ int main()
     // cout << "Retrieve numVotes = 1000" << endl;
     // bt.findByValue(1000);
     bool complete = true;
+    int counter = 0;
     do {
+        counter++;
         complete = bt.deleteNodes(52);
     }while (complete);
+    counter--; //Last run nvr delete
+    cout << "Deleted 52: " << counter << endl;
     // for (int i=0;i < 100000; i++) {
     //     cout << i << ":" << unsorted_list[i].key << ",";
     // }

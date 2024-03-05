@@ -77,7 +77,7 @@ bool BPTree::bulkLoad(vector<tempStruct> &list, int size) {
     int is500 = 0;
     // cout << level << "|" << totalNodes << "|" << currNode << endl;
     for (int i=0;i < size;i++) {
-        if (list[i].key == 1000) {
+        if (list[i].key == 52) {
             is500++;
         }
 
@@ -492,11 +492,13 @@ bool BPTree::deleteNodes(int value) {
                 if (leftNode != nullptr) {
                     leftNode->mergeNode(currNode);
                     removedNode = currNode;
+                    leftNode->setNextNodePointer(currNode->getNextNodePointer());
                 }else {
                     // Merge with right
                     // Do checks if there is a right node? but if this fails how?
                     currNode->mergeNode(rightNode);
                     removedNode = rightNode;
+                    currNode->setNextNodePointer(rightNode->getNextNodePointer());
                 }
                 
                 Node* navParent = removedNode->getParentPointer();
@@ -576,6 +578,9 @@ bool BPTree::deleteNodes(int value) {
                                 }
                                 navParent = removedNode->getParentPointer();
                             }
+                        }else {
+                            updatedNode = (int*) navParent;
+                            navParent = navParent->getParentPointer();
                         }
                     }else {
                         // Not merged, changed only

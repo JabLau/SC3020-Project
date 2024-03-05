@@ -423,6 +423,8 @@ bool BPTree::deleteNodes(int value) {
         if (currNode->nodeValid() == false && parentNode != nullptr) {
             // Get Sibling Nodes
             int* tempCurrNodePtr = (int*) currNode; //Get int ptr ver of currNode for comparison
+            leftNode = nullptr;
+            rightNode = nullptr;
             for (int i=0;i <= parentNode->currKeyCount;i++) {
                 if (parentNode->pointers[i] == tempCurrNodePtr) {
                     if (i > 0) {
@@ -466,24 +468,127 @@ bool BPTree::deleteNodes(int value) {
                         if (navParent->pointers[i] == changed) {
                             if (i > 0) {
                                 navParent->keys[i-1] = getLowerBoundOfSubTree((Node*) changed);
-                                break;
+                                navParent = nullptr;
                             }
+                            break;
                         }
                     }
-                    changed =(int*) navParent;
-                    navParent = navParent->getParentPointer();
+                    if (navParent != nullptr) {
+                        changed =(int*) navParent;
+                        navParent = navParent->getParentPointer();
+                    }
                 }
             }
 
             if (!borrowed) {
+                Node* removedNode;
                 // Case 2: Merge with Siblings (Left if have, right if dont have)
-                // Need to explore further
-                if (leftNode != nullptr && leftNode->borrowKeyCheck() == false) {
+                // If i previously tried to borrow from Left Node and failed,
+                // Left node has enough space for me to merge
+                if (leftNode != nullptr) {
                     leftNode->mergeNode(currNode);
+                    removedNode = currNode;
                 }else {
                     // Merge with right
                     // Do checks if there is a right node? but if this fails how?
                     currNode->mergeNode(rightNode);
+                    removedNode = rightNode;
+                }
+                
+                Node* navParent = removedNode->getParentPointer();
+                int* updatedNode;
+                while (navParent != nullptr) {
+                    if (removedNode != nullptr) {
+                        navParent->removeChildNode((int*) removedNode);
+                        free(removedNode);
+                        removedNode = nullptr;
+
+                        if (navParent->nodeValid() == false) {
+                            // Check  borrow?
+                            parentNode = navParent->getParentPointer();
+
+                            if (parentNode == nullptr) {
+                                // No Parent is root node!
+                                cout << "Root node not valid" << endl;
+                                // If root only has 1 child node, child node is new root node
+                                if (navParent->currKeyCount == 0) {
+                                    Node* newRoot = (Node*)navParent->pointers[0];
+                                    this->rootNode = newRoot;
+                                    newRoot->removeParentPointer();
+                                    free(navParent);
+                                    navParent = nullptr;
+                                }
+                                break;
+                            }
+
+                            int* tempCurrNodePtr = (int*) navParent; //Get int ptr ver of navParent for comparison
+                            leftNode = nullptr;
+                            rightNode = nullptr;
+                            for (int i=0;i <= parentNode->currKeyCount;i++) {
+                                if (parentNode->pointers[i] == tempCurrNodePtr) {
+                                    if (i > 0) {
+                                        leftNode = (Node*) parentNode->pointers[i-1];
+                                    }
+
+                                    if (i < parentNode->currKeyCount) {
+                                        rightNode = (Node*) parentNode->pointers[i+1]; 
+                                    }
+                                }
+                            }
+                            bool borrowed = false;
+
+                            if (leftNode != nullptr) {
+                                if (leftNode->borrowKeyCheck()) {
+                                    borrowedStruct = leftNode->borrowKeyCauseDeletion(true);
+                                    borrowed = true;
+                                    // Insert to back of currentNode
+                                    navParent->addChild(borrowedStruct.key,borrowedStruct.address);
+                                    updatedNode =(int*) navParent;
+                                }
+                            }
+
+                            if (rightNode != nullptr && !borrowed) {
+                                if (rightNode->borrowKeyCheck()) {
+                                    borrowedStruct = rightNode->borrowKeyCauseDeletion(false);
+                                    borrowed = true;
+                                    // Insert to back of currentNode
+                                    navParent->addChild(borrowedStruct.key,borrowedStruct.address);
+                                    updatedNode =(int*) rightNode;
+                                }
+                            }
+
+                            if (borrowed) {
+                                navParent = navParent->getParentPointer();
+                            }
+
+                            // Must merge?
+                            if (!borrowed) {
+                                if (leftNode != nullptr) {
+                                    leftNode->mergeNode(navParent);
+                                    removedNode = navParent;
+                                }else {
+                                    navParent->mergeNode(rightNode);
+                                    removedNode = rightNode;
+                                }
+                                navParent = removedNode->getParentPointer();
+                            }
+                        }
+                    }else {
+                        // Not merged, changed only
+                        for (int i=0;i<navParent->currKeyCount;i++) {
+                            if (navParent->pointers[i] == updatedNode) {
+                                if (i > 0) {
+                                    navParent->keys[i-1] = getLowerBoundOfSubTree((Node*) updatedNode);
+                                    navParent = nullptr;
+                                }
+                                break;
+                            }
+                        }
+                        if (navParent != nullptr) {
+                            updatedNode =(int*) navParent;
+                            navParent = navParent->getParentPointer();
+                        }
+                    }
                 }
             }
         }

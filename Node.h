@@ -34,7 +34,8 @@ public:
     
     void setParentPointer(Node*);
     Node* getParentPointer();
-
+    void removeParentPointer();
+    
     tempStruct getKeyForTransfer();
     void keyTransfer(int key, int* address);
 
@@ -51,7 +52,9 @@ public:
     tempStruct getFirstPointerForBorrow();
 
     int getLowerBoundKey(Node*);
-    void mergeNode(Node*)
+    void mergeNode(Node*);
+
+    void removeChildNode(int*);
 };
 
 

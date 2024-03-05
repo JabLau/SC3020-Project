@@ -28,7 +28,7 @@ public:
     void findByRange(int, int);
     void findByValue(int);
 
-    void deleteNodes(int value);
+    bool deleteNodes(int value);
 
     int getLowerBoundOfSubTree(Node*);
 };

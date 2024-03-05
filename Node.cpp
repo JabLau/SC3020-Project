@@ -107,6 +107,10 @@ Node* Node::getParentPointer() {
         return nullptr;
     }
 }
+
+void Node::removeParentPointer() {
+    this->parentSet = false;
+}
 void Node::printNode() {
     if (currKeyCount > 0) {
         for (int i=0; i < this->currKeyCount;i++) {
@@ -256,6 +260,7 @@ tempStruct Node::getFirstPointerForBorrow() {
 }
 
 void Node::mergeNode(Node* mergeNode) {
+    // For Merging right node to left node only!
     if (this->leafNode) {
         for (int i = 0; i < mergeNode->currKeyCount;i++) {
             this->keys[this->currKeyCount] = mergeNode->keys[i];
@@ -265,6 +270,7 @@ void Node::mergeNode(Node* mergeNode) {
     }else {
         for (int i = 0; i <= mergeNode->currKeyCount;i++) {
             this->keys[this->currKeyCount] = getLowerBoundKey((Node*) mergeNode->pointers[i]);
+            ((Node*)mergeNode->pointers[i])->setParentPointer(this);
             this->pointers[this->currKeyCount+1] = mergeNode->pointers[i];
             this->currKeyCount++;
         }
@@ -289,4 +295,29 @@ void Node::addChildFront(int key, int* address) {
         this->pointers[0] = address;
         this->currKeyCount++;
     }
+}
+
+// For removing child node
+void Node::removeChildNode(int* ptr) {
+    for (int i=0;i<this->currKeyCount;i++) {
+        if (this->pointers[i] == ptr) {
+            if (i > 0) {
+                // Move Keys and Pointers down
+                for (int k=i;k <= this->currKeyCount;i++) {
+                    this->keys[k-1] = this->keys[k];
+                    this->pointers[k] = this->pointers[k+1];
+                }
+            }else {
+                // i == 0
+                // Run Key count - 1 times as removing 1 key
+                for (int k=i;k < this->currKeyCount-1;i++) {
+                    this->keys[k] = this->keys[k+1];
+                    this->pointers[k] = this->pointers[k+1];
+                }
+                // Have to move last pointer down as for loop doesnt cover last pointer in pointer list
+                this->pointers[this->currKeyCount-1] = this->pointers[this->currKeyCount];
+            }
+        }
+    }
+    this->currKeyCount--;
 }

@@ -50,7 +50,7 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
         vector<string> col = strSplitByDelim (line, '\t');
 
         // Store record in disk
-        addressInfo addr = disk->storeRecord(Record(col[0], col[1], col[2]));
+        addressInfo addr = disk->storeRecord(new Record(col[0], col[1], col[2]));
         // If record is stored successfully, increment totalRecords
         tempStruct s1 = {stoi(col[2]), disk->getBlockAddress(addr.blockId)+addr.offset};
         addr_NumVotes_list.push_back(s1);
@@ -69,10 +69,10 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
             cout << "\r" <<  line_num;
         }
 
-//        // Break after 10 lines
-//        if (line_num > 10) {
-//            break;
-//        }
+       // Break after 10 lines
+    //    if (line_num > 10000) {
+    //        break;
+    //    }
     }
     return addr_NumVotes_list;
 }

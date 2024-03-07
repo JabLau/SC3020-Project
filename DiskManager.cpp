@@ -113,7 +113,7 @@ addressInfo DiskManager::getNextAvailableAddress() {
     return {-1, -1};
 }
 
-addressInfo DiskManager::storeRecord(Record r) {
+addressInfo DiskManager::storeRecord(Record *r) {
 	// Check if any memory available
 	if (totalRecords >= maxRecords ) {
 		return {-1, -1};
@@ -134,7 +134,7 @@ addressInfo DiskManager::storeRecord(Record r) {
     // Case 2: Address has the space to accommodate the whole record, no spanning needed
     if (blockSize - ((getBlockAddress(nextAvailableAddress.blockId)+ nextAvailableAddress.offset)- getBlockAddress(nextAvailableAddress.blockId)) >= sizeof(Record)) {
         // Enough space to store the record without spanning
-        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeof(Record));
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, r, sizeof(Record));
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeof(Record);
     }
@@ -147,11 +147,11 @@ addressInfo DiskManager::storeRecord(Record r) {
 
         // Copy first half of the record to the original block
         cout << "Size left: " << sizeLeft << ", Spill over size: " << spillOverSize << endl;
-        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeLeft);
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, r, sizeLeft);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeLeft;
 
-        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), reinterpret_cast<char*>(&r) + sizeLeft, spillOverSize);
+        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), reinterpret_cast<char*>(r) + sizeLeft, spillOverSize);
         // memcpy(getBlockAddress(nextAvailableAddress.blockId+1), (&r)+(sizeLeft/4), spillOverSize);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId+1] -= spillOverSize;

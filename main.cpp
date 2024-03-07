@@ -78,8 +78,8 @@ void testBPTree2() {
     for (int i = 0; i < 150; i++) {
         int randInt = rand() % 99999;
         cout << randInt << endl;
-        Record r1 = Record(to_string(randInt), to_string(5.5), to_string(randInt));
-        addr = disk.storeRecord(r1);
+        Record *r1 =new  Record(to_string(randInt), to_string(5.5), to_string(randInt));
+        addr = disk.storeRecord( r1);
         absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
         bt.insertKey(randInt, absol_addr);
     }
@@ -257,8 +257,8 @@ void bubbleSort(vector<tempStruct> &arr, int n)
 int main()
 {
     //testBPTree();
-    testBPTree2();
-    return 1;
+    // testBPTree2();
+    // return 1;
     // Settings
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB
@@ -268,35 +268,58 @@ int main()
     
     // Experiment 1
     vector<tempStruct> unsorted_list = experiment_1(&disk);
-    int n=unsorted_list.size();
-    cout <<"Length of Unsorted List = "<<n <<endl;
-    heapSort(unsorted_list, n);
-    //bubbleSort(unsorted_list, n);
-    cout <<"Sort Complete" << endl;
+    // int n=unsorted_list.size();
+    // cout <<"Length of Unsorted List = "<<n <<endl;
+    // heapSort(unsorted_list, n);
+    // //bubbleSort(unsorted_list, n);
+    // cout <<"Sort Complete" << endl;
 
 
-    // new vector
-    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
-    int j=0;
+    // // new vector
+    // vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
+    // int j=0;
 
-    // Allocate into unique linked list
-    for (int i=0;i < n; i++) {
-        // Check if uniqueArr is empty
-        if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
-            // Create a tempStruct2
-            tempStruct2 temp;
-            temp.key = unsorted_list[i].key;
-            temp.addresses.push_back(unsorted_list[i].address);
-            // Put into uniqueArr
-            uniqueArr->push_back(temp);
-            j++;
-        } else {
-            (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
-        }
-    }
+    // // Allocate into unique linked list
+    // for (int i=0;i < n; i++) {
+    //     // Check if uniqueArr is empty
+    //     if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
+    //         // Create a tempStruct2
+    //         tempStruct2 temp;
+    //         temp.key = unsorted_list[i].key;
+    //         temp.addresses.push_back(unsorted_list[i].address);
+    //         // Put into uniqueArr
+    //         uniqueArr->push_back(temp);
+    //         j++;
+    //     } else {
+    //         (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
+    //     }
+    // }
 
     BPTree bt = BPTree(3);
-    bt.bulkLoad(*uniqueArr, uniqueArr->size());
+    for (int i=0; i < unsorted_list.size();i++) {
+        bt.insertKey(unsorted_list[i].key, unsorted_list[i].address);
+    }
+    // addressInfo addr;
+    // int *absol_addr;
+    // Record r1 = Record(to_string(75), to_string(5.5), to_string(75));
+    // addr = disk.storeRecord(r1);
+    // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    // bt.insertKey(75, absol_addr);
+    // r1 = Record(to_string(75), to_string(5.5), to_string(75));
+    // addr = disk.storeRecord(r1);
+    // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    // bt.insertKey(75, absol_addr);
+    // r1 = Record(to_string(75), to_string(5.5), to_string(75));
+    // addr = disk.storeRecord(r1);
+    // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    // bt.insertKey(73, absol_addr);
+    // r1 = Record(to_string(75), to_string(5.5), to_string(75));
+    // addr = disk.storeRecord(r1);
+    // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    // bt.insertKey(75, absol_addr);
+    bt.printTree();
+    bt.leafNodeCheck();
+    // bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;
 //    vector<int*> find500 = bt.findByValue(500);
 //    vector<vector<int*>> findRangeVal = bt.findByRange(30000,40000);

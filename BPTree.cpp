@@ -99,9 +99,10 @@ bool BPTree::insertKey(int key, int* address) {
     } else {
         vector<int *> *findArr = this->findByValue(key);
         if (findArr != nullptr) {
-            findArr->push_back(address);
+            (*findArr).push_back(address);
         } else {
             Node *currNode = (this->rootNode);
+            vector<int*> *arr = new vector<int*>;
             // Navigate to Leaf Node
             while (currNode->leafNode == false) {
                 for (int i = 0; i < currNode->currKeyCount; i++) {
@@ -117,14 +118,14 @@ bool BPTree::insertKey(int key, int* address) {
                     }
                 }
             }
-
+            arr->push_back(address);
             // Found Leaf Node, Check if can fit in new value
             if (currNode->canAddChild()) {
-                currNode->addChild(key, (int *) address);
+                currNode->addChild(key, (int *) arr);
             } else {
                 // Node Full cannot add any new values
                 // Need split
-                this->splitNode(currNode, key, (int *) address);
+                this->splitNode(currNode, key, (int *) arr);
             }
         }
     }
@@ -296,7 +297,7 @@ vector<int*>* BPTree::findByValue(int value) {
     do {
         for (int i=0;i < currNode->currKeyCount;i++) {
             if (currNode->keys[i] == value) {
-                return ((vector<int*>*) currNode->pointers[i]);
+                return ((vector<int*>*)currNode->pointers[i]);
             }else if (currNode->keys[i] > value) {
                 overshot = true;
                 break;

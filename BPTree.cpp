@@ -16,47 +16,123 @@ BPTree::BPTree(int maxKeys) {
     this->maxKeys = maxKeys;
 }
 
-//bool BPTree::insertKey(int key, int *address) {
-//    if (this->rootNode == nullptr) {
-//        Node root = Node(this->maxKeys);
-//        root.addChild(key, address);
-//        root.isLeafNode(true);
-//        this->rootNode = &root;
-//    }else {
-//        // Has nodes, find leaf node for key
-//        Node currNode = *(this->rootNode);
-//
-//        // Search through tree to find leaf node
-//        while (currNode.leafNode == false) {
-//            int* nextNode = nullptr;
-//            // Find part of current node that is bigger than key
-//            for (int i=0;i<currNode.currKeyCount;i++) {
-//                if (currNode.keys[i] > key) {
-//                    nextNode = currNode.pointers[i];
-//                }
-//            }
-//
-//            if (nextNode == nullptr) {
-//                if (currNode.isFull() == false) {
-//                    nextNode = currNode.pointers[currNode.currKeyCount]; //Get pointer behind last key in Node
-//                }
-//                // Full but cannot find? deadend????
-//                // Cause only pointer left is the one going to the next node in level
-//            }
-//
-//            currNode = *nextNode;
-//        }
-//        // Found leaf node to put key in
-//        // Check if leaf node full
-//        if (currNode.isFull()) {
-//            // Split node
-//        }else {
-//            currNode.addChild(key, address);
-//        }
-//
-//    }
-//    return false;
-//}
+void BPTree::printTree(){
+    // Check if root node is empty, if empty means tree is empty
+    if (this->rootNode == nullptr) {
+        // Tree is empty
+        cout << "Tree is empty" << endl;
+        return;
+    }
+
+    cout << "Printing B+ Tree" << endl;
+
+    // Use queue to do BFS
+    queue<Node*> fifoQueue;
+    fifoQueue.push(this->rootNode);
+    int level = 0;
+
+    // Main loop to print tree
+    while (!fifoQueue.empty()) {
+        int nodesInLevel = fifoQueue.size();
+        cout << "Level " << level << ":" << endl;
+
+        for (int i=0; i<nodesInLevel; i++){
+            Node* currNode = fifoQueue.front();
+            fifoQueue.pop();
+
+            // Print boarder
+            cout << "[ ";
+            // Print the contents of the node
+            for (int j=0; j<currNode->currKeyCount; j++) {
+                cout << currNode->keys[j] << " ";
+            }
+            // Print closing boarder
+            cout << "] ";
+
+            // enqueue all child nodes of an internal node
+            if (!currNode->leafNode) {
+                for (int j=0; j<=currNode->currKeyCount; j++){
+                    fifoQueue.push((Node*) currNode->pointers[j]);
+                }
+            }
+        }
+
+        cout << endl;
+        level++;
+    }
+}
+
+bool BPTree::splitNode(Node* node, int key, int *address) {
+    //Node* splitNode = node->splitNode();
+    Node* splitNode;
+    Node* parentPtr = node->getParentPointer();
+    if (parentPtr != nullptr) {
+        if (parentPtr->canAddChild() == false) {
+              this->splitNode(parentPtr, splitNode->getSelfLowerBoundKey(), (int*)splitNode);
+        }else {
+            // Add Child in
+            parentPtr->addChild(splitNode->getSelfLowerBoundKey(), (int*) splitNode);
+            splitNode->setParentPointer(parentPtr);
+        }
+    }else {
+        // No parent ptr, need to create parent!
+        parentPtr = new Node(this->maxKeys);
+        parentPtr->addFirstChild((int*)node);
+        parentPtr->addChild(splitNode->getSelfLowerBoundKey(), (int*) splitNode);
+        node->setParentPointer(parentPtr);
+        splitNode->setParentPointer(parentPtr);
+        // TODO: Darren help check if my understanding of this is correct
+        // If im the root node and i split
+        // THe new parent is the root node
+        // Help me double confirm, that there wont be any subtrees that are stranded
+        // Stranded = cannot access cause the subtree address wasnt tagged to the new parent!
+        if (this->rootNode == node) {
+            this->rootNode = parentPtr;
+        }
+    }
+}
+
+bool BPTree::insertKey(int key, int* address) {
+    // Case 1: Tree Empty
+    if (this->rootNode == nullptr) {
+        Node *root = new Node(this->maxKeys);
+        root->setLeafNode(true);
+        vector<int*> *arr = new vector<int*>;
+        root->addChild(key, (int *) arr);
+        this->rootNode = root;
+    } else {
+        vector<int *> *findArr = this->findByValue(key);
+        if (findArr != nullptr) {
+            findArr->push_back(address);
+        } else {
+            Node *currNode = (this->rootNode);
+            // Navigate to Leaf Node
+            while (currNode->leafNode == false) {
+                for (int i = 0; i < currNode->currKeyCount; i++) {
+                    if (currNode->keys[i] > key) {
+                        currNode = (Node *) currNode->pointers[i];
+                        break;
+                    }
+
+                    if (i == currNode->currKeyCount - 1) {
+                        // Set as last pointer of Internal Node
+                        currNode = (Node *) currNode->pointers[currNode->currKeyCount + 1];
+                    }
+                }
+            }
+
+            // Found Leaf Node, Check if can fit in new value
+            if (currNode->canAddChild()) {
+                currNode->addChild(key, (int *) address);
+            } else {
+                // Node Full cannot add any new values
+                // Need split
+                this->splitNode(currNode, key, (int *) address);
+            }
+        }
+    }
+    return true;
+}
 
 bool BPTree::bulkLoad(vector<tempStruct2> &list, int size) {
 
@@ -203,17 +279,16 @@ void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
     }
 }
 
-void BPTree::printTree() {
-    Node* navNode = this->rootNode;
-    navNode->printNode();
-}
+//void BPTree::printTree() {
+//    Node* navNode = this->rootNode;
+//    navNode->printNode();
+//}
 
-vector<int*> BPTree::findByValue(int value) {
+vector<int*>* BPTree::findByValue(int value) {
     Node *currNode = this->findNodeWithValue(value);
-    vector<int*> defaultRtn = {};
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
-        return defaultRtn;
+        return nullptr;
     }
 
     double totalAvgRating = 0; 
@@ -224,7 +299,7 @@ vector<int*> BPTree::findByValue(int value) {
     do {
         for (int i=0;i < currNode->currKeyCount;i++) {
             if (currNode->keys[i] == value) {
-                return (*(vector<int*>*) currNode->pointers[i]);
+                return ((vector<int*>*) currNode->pointers[i]);
             }else if (currNode->keys[i] > value) {
                 overshot = true;
                 break;
@@ -237,7 +312,7 @@ vector<int*> BPTree::findByValue(int value) {
         currNode = (Node*) currNode->getNextNodePointer();
     }while (currNode != nullptr);
 
-    return defaultRtn;
+    return nullptr;
 }
 
 Node* BPTree::findNodeWithValue(int value) {
@@ -501,7 +576,7 @@ bool BPTree::deleteNodes(int value) {
                 int* updatedNode;
                 while (navParent != nullptr) {
                     if (removedNode != nullptr) {
-                        navParent->removeChildNode((int*) removedNode);
+                        navParent->deleteKey((int*) removedNode);
                         free(removedNode);
                         removedNode = nullptr;
 

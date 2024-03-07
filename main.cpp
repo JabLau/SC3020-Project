@@ -19,7 +19,7 @@
 #include "BPTree.h"
 #include "tempStruct.h"
 #include <vector>
-
+#include <cstdlib>
 
 using namespace std;
 
@@ -62,6 +62,30 @@ vector<tempStruct> experiment_1(DiskManager* disk){
 
     return unsorted_list;
 }
+
+void testBPTree2() {
+    int blockSize = 200; // in bytes
+    int totalMemSize = 250 * 1000000; //in MB
+
+    // Allocate space simulating main memory
+    DiskManager disk = DiskManager(blockSize, totalMemSize);
+
+    BPTree bt = BPTree(3);
+    addressInfo addr;
+    int *absol_addr;
+    cout << "Inserting" << endl;
+    for (int i = 0; i < 100; i++) {
+        int randInt = rand() % 99999;
+        cout << randInt << endl;
+        Record r1 = Record(to_string(randInt), to_string(5.5), to_string(randInt));
+        addr = disk.storeRecord(r1);
+        absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+        bt.insertKey(randInt, absol_addr);
+    }
+
+    bt.printTree();
+}
+
 
 void testBPTree(vector<tempStruct> &arr){
     // Settings
@@ -208,7 +232,8 @@ void bubbleSort(vector<tempStruct> &arr, int n)
 int main()
 {
     //testBPTree();
-
+    testBPTree2();
+    return 1;
     // Settings
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB
@@ -248,8 +273,8 @@ int main()
     BPTree bt = BPTree(3);
     bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;
-    vector<int*> find500 = bt.findByValue(500);
-    vector<vector<int*>> findRangeVal = bt.findByRange(30000,40000);
+//    vector<int*> find500 = bt.findByValue(500);
+//    vector<vector<int*>> findRangeVal = bt.findByRange(30000,40000);
 
 //    cout << "Retrieve 30,000 <= numVotes <= 40,000" << endl;
 //    bt.findByRange(30000,40000);

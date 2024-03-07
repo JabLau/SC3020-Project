@@ -29,44 +29,237 @@ bool Node::addFirstChild(int *address) {
     return true;
 }
 
+
+Node* Node::splitNode(int key, int* address){
+    /*This function aims to split the 2 nodes when full. It accepts key to be inserted and the address of the
+     * node to be split.
+     * With the current, we need to compare it with the middle key. Middle Key = n/2+1
+     * if key< middle key, transfer from the middle key onwards
+     * if key> middle key, transfer from after the middle key onwards.
+     *
+     * 2 Questions:
+     * How to delete key
+     * Does add child deal with lack of pointers?
+     */
+    Node *newNode = new Node(this->maxKeys);
+    if (this->leafNode) {
+        //Perform splitting here.
+        newNode->setLeafNode(true);
+        int middleIndex = (this->maxKeys) / 2 +1;
+        if(key>this->keys[middleIndex])
+        {
+            //Since key>middle key, Transfer from after the middle key onwards
+            for(int i=middleIndex+1; i<this->maxKeys; i++)
+            {
+                newNode->addChild(this->keys[i],this->pointers[i]);
+                this->currKeyCount--;
+            }
+            newNode->addChild(key,address);
+        }else {
+            //Since key< middle key, transfer from the middle key onwards
+            for (int i = middleIndex; i < this->maxKeys; i++) {
+                newNode->addChild(this->keys[i], this->pointers[i]);
+                this->currKeyCount--;
+            }
+            this->addChild(key, address);
+        }
+        this->setNextNodePointer((int*)newNode);
+
+//        if (this->keys[middleIndex] < key) {
+//            // Transfer 1 less key from left to right side
+//            // As new key belongs to right side
+//            middleIndex++;
+//        }
+//        for (int i = middleIndex, j=0; i < currKeyCount; i++, j++) {
+//            newNode->addChild(this->keys[i],this->pointers[i]);
+//            j++;
+//        }
+//
+//        // Update current key count
+//        this->currKeyCount = middleIndex;
+//        newNode->setLeafNode(true);
+//        //Link both leaf nodes together.
+//        // Check if middle key is smaller than the new node's first key
+//        if (this->keys[middleIndex - 1] < key){
+//            // New key belongs to new node
+//            newNode->addChild(key, address);
+//        } else {
+//            // New key belongs to curr node
+//            this->addChild(key, address);
+//        }
+//
+//
+//        // Find Middle
+//        // Transfers keys over to newNode
+//        // Update curr key count in currNode
+//        // Check if new key is smaller than newNode's 1st key
+//        // If bigger, newNode->addChild
+//        // Is Smaller, this->addChild
+//
+//        // Return splitNode
+//        // Accept in node pointer
+//        // Transfer keys and pointers from current node to the new node
+//
+//
+//        // Update current node's key count
+//        this->currKeyCount = middleIndex - 1;
+//
+//        // Set leaf status
+//        newNode->leafNode = true;
+    }else {
+        // Internal Node
+        int middleIndex = ((this->currKeyCount) / 2 )+1;
+        if (this->keys[middleIndex - 1] < key) {
+            // Belongs to Right Node, Transfer 1 less pointer over
+            middleIndex++;
+        }
+
+        int j = 0;
+        for (int i = middleIndex; i < currKeyCount; i++, j++) {
+            newNode->addChild(this->keys[i],this->pointers[i]);
+//            newNode->keys[j] = this->keys[i];
+//            newNode->pointers[j] = this->pointers[i];
+//            newNode->currKeyCount++;
+            j++;
+        }
+
+        newNode->pointers[j] = this->pointers[this->currKeyCount];
+
+        // Update current key count
+        this->currKeyCount = middleIndex;
+        if (this->keys[middleIndex - 1] < key){
+            // New key belongs to new node
+            newNode->addChild(key, address);
+        } else {
+            // New key belongs to curr node
+            this->addChild(key, address);
+        }
+
+
+        // Find Middle
+        // Transfers keys over to newNode
+        // Update curr key count in currNode
+        // Check if new key is smaller than newNode's 1st key
+        // If bigger, newNode->addChild
+        // Is Smaller, this->addChild
+
+        // Return splitNode
+        // Accept in node pointer
+        // Transfer keys and pointers from current node to the new node
+
+
+        // Update current node's key count
+        this->currKeyCount = middleIndex - 1;
+
+        // Set leaf status
+        newNode->leafNode = true;
+    }
+    return newNode;
+}
+
+void Node::setChildNodeParent() {
+    if (!this->leafNode) {
+        for (int i = 0; i < this->currKeyCount; i++) {
+            Node *temp = (Node*) this->pointers[i];
+            temp->setParentPointer(this);
+        }
+    }
+}
+
 bool Node::addChild(int key, int *address) {
     // Values already sorted
-    this->keys[this->currKeyCount] = key;
-    this->pointers[this->currKeyCount+1] = address;
-    this->currKeyCount++;
-    return true;
-
-//  This was a sorting function but can remove if not needed anymore!
-//    if (this->currKeyCount > 0) {
-//        bool added = false;
-//        // Has values, need to find spot to place it in
-//        // Check if any keys smaller than our new key
-//        for(int i=0; i < this->currKeyCount;i++) {
-//            if (this->keys[i] > key) {
-//                // Key "i" is bigger than new key
-//                // Have to move all keys backwards to fit new key
-//                for (int k=this->currKeyCount;k > i;k--) {
-//                    this->keys[k] = this->keys[k-1];
-//                    this->pointers[k] = this->pointers[k-1];
-//                }
-//                // Insert new Key and address
-//                this->keys[i] = key;
-//                this->pointers[i] = address;
-//                added = true;
-//                break;
-//             }
-//        }
-//        if (!added) {
-//            //All keys are smaller than current key, put in first free position
-//            this->keys[this->currKeyCount] = key;
-//            this->pointers[this->currKeyCount] = address;
-//        }
-//    }else {
-//        this->keys[0] = key;
-//        this->pointers[0] = address;
-//    }
+//    this->keys[this->currKeyCount] = key;
+//    this->pointers[this->currKeyCount+1] = address;
 //    this->currKeyCount++;
 //    return true;
+
+    //This function accepts parents node address and child key value to add a child into the B+ Tree.
+    /*This function checks if it is a leaf node. If it is a leaf node, then slot into the node accordingly based on the
+     * key value against the search value.
+     */
+    if (this->leafNode) {
+        if (this->currKeyCount > 0) {
+            if (key >= this->keys[this->currKeyCount - 1]) {
+                //All keys are smaller than current key, put in first free position
+                this->keys[this->currKeyCount] = key;
+                this->pointers[this->currKeyCount] = address;
+            } else {
+                // Has values, need to find spot to place it in
+                // Check if any keys smaller than our new key
+                for (int i = 0; i < this->currKeyCount; i++) {
+                    if (this->keys[i] > key) {
+                        // Key "i" is bigger than new key
+                        // Have to move all keys backwards to fit new key
+                        for (int k = this->currKeyCount; k > i; k--) {
+                            this->keys[k] = this->keys[k - 1];
+                            this->pointers[k] = this->pointers[k - 1];
+                        }
+                        // Insert new Key and address
+                        this->keys[i] = key;
+                        this->pointers[i] = address;
+                        break;
+                    }
+                }
+            }
+        } else {
+            this->keys[0] = key;
+            this->pointers[0] = address;
+        }
+        this->currKeyCount++;
+        return true;
+    }else {
+        // Non Leaf Node
+        if (this->firstPtr == false){
+            // First Child of Internal Node
+            this->pointers[0] = address;
+            this->firstPtr = true;
+        }else {
+            int keyPos = 0;
+            // Find Key Position to insert (In terms of pointer index!)
+            if (this->currKeyCount > 0) {
+                for (int i = 0; i < this->currKeyCount; i++) {
+                    if (key < this->keys[i]) {
+                        if (i == 0) {
+                            Node *firstPtr = (Node *) this->pointers[0];
+                            // Is key smaller than first ptr
+                            if (key >= firstPtr->getSelfLowerBoundKey()) {
+                                keyPos = 1;
+                            } else {
+                                keyPos = 0;
+                            }
+                            break;
+                        }
+                        keyPos = i + 1;
+                        break;
+                    }
+
+                    if (i >= this->currKeyCount - 1) {
+                        //Bigger than all keys
+                        keyPos = i + 1;
+                    }
+                }
+            }else {
+                // First Key of Node, cause only firstPtr exist rn
+                keyPos = 1;
+            }
+            // Shift all keys and ptr from keyPos backwards
+            for (int i=this->currKeyCount+1;i>keyPos;i--) {
+                if (i > 1) {
+                    this->keys[i-1] = this->keys[i-2];
+                }else {
+                    this->keys[i - 1] = ((Node*)this->pointers[i-1])->getSelfLowerBoundKey();
+                }
+                this->pointers[i] = this->pointers[i-1];
+            }
+
+            if (keyPos > 0) {
+                this->keys[keyPos - 1] = key;
+            }
+            this->pointers[keyPos] = address;
+            this->currKeyCount++;
+        }
+        return true;
+    }
 }
 
 bool Node::insertLeafNodeKey(int key, int *address) {
@@ -187,27 +380,10 @@ bool Node::nodeValid() {
     }
 }
 
-// For Leaf Node Deletion Only!
-void Node::deleteKey(int key) {
-    if (this->leafNode) {
-        for (int i = 0; i < this->currKeyCount;i++) {
-            if (this->keys[i] == key) {
-                // If last key dont need do anything
-                if (i != this->currKeyCount-1) {
-                    // Not Last Key, need to shift stuff up
-                    // Use currKeyCount-1 as we will be replacing curr key with next key, thus at 
-                    // currKeyCount-1 we will be replacing with the last key alr
-                    for (int k=i;k < (this->currKeyCount-1);k++) {
-                        this->keys[k] = this->keys[k+1];
-                        this->pointers[k] = this->pointers[k+1];
-                    }
-                }
-                this->currKeyCount--;
-                break;
-            }
-        }
-    }
+bool Node::canAddChild() {
+    return (this->currKeyCount + 1 <= this->maxKeys);
 }
+
 
 // Leaf node only
 bool Node::borrowKeyCheck() {
@@ -285,6 +461,14 @@ int Node::getLowerBoundKey(Node* curr) {
     return curr->keys[0];
 }
 
+int Node::getSelfLowerBoundKey() {
+    Node* curr = this;
+    while (curr->leafNode == false) {
+        curr =(Node*) curr->pointers[0];
+    }
+    return curr->keys[0];
+}
+
 // For leaf node only
 void Node::addChildFront(int key, int* address) {
     if (this->leafNode) {
@@ -298,8 +482,30 @@ void Node::addChildFront(int key, int* address) {
     }
 }
 
-// For removing child node
-void Node::removeChildNode(int* ptr) {
+// For Leaf Node Deletion Only!
+void Node::deleteKey(int key) {
+    if (this->leafNode) {
+        for (int i = 0; i < this->currKeyCount;i++) {
+            if (this->keys[i] == key) {
+                // If last key dont need do anything
+                if (i != this->currKeyCount-1) {
+                    // Not Last Key, need to shift stuff up
+                    // Use currKeyCount-1 as we will be replacing curr key with next key, thus at
+                    // currKeyCount-1 we will be replacing with the last key alr
+                    for (int k=i;k < (this->currKeyCount-1);k++) {
+                        this->keys[k] = this->keys[k+1];
+                        this->pointers[k] = this->pointers[k+1];
+                    }
+                }
+                this->currKeyCount--;
+                break;
+            }
+        }
+    }
+}
+
+// For removing child node, for internal nodes
+void Node::deleteKey(int* ptr) {
     for (int i=0;i<=this->currKeyCount;i++) {
         if (this->pointers[i] == ptr) {
             if (i > 0) {

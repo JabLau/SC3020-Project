@@ -88,7 +88,8 @@ Node* Node::splitNode(int key, int* address){
             }
             this->addChild(key, address);
         }
-
+        this->setChildNodeParent();
+        newNode->setChildNodeParent();
 
 
 
@@ -214,6 +215,7 @@ bool Node::addChild(int key, int *address) {
         } else {
             this->keys[0] = key;
             this->pointers[0] = address;
+            this->updateParentNode();
         }
         this->currKeyCount++;
         return true;
@@ -245,7 +247,7 @@ bool Node::addChild(int key, int *address) {
 
                     if (i >= this->currKeyCount - 1) {
                         //Bigger than all keys
-                        keyPos = i + 1;
+                        keyPos = i + 2;
                     }
                 }
             }else {

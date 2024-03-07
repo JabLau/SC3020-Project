@@ -32,6 +32,8 @@ public:
     bool deleteNodes(int value);
 
     int getLowerBoundOfSubTree(Node*);
+
+    void leafNodeCheck();
 };
 
 #endif //SC3020_PROJECT_BPTREE_H

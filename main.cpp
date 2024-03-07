@@ -75,14 +75,17 @@ void testBPTree2() {
     int *absol_addr;
     cout << "Inserting" << endl;
     int test[] = {50,53,70,76,90,100,83,86,77,56};
-    // for (int i = 0; i < 150; i++) {
-    //     int randInt = rand() % 99999;
-    //     cout << randInt << endl;
-    //     Record r1 = Record(to_string(randInt), to_string(5.5), to_string(randInt));
-    //     addr = disk.storeRecord(r1);
-    //     absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
-    //     bt.insertKey(randInt, absol_addr);
-    // }
+    for (int i = 0; i < 150; i++) {
+        int randInt = rand() % 99999;
+        cout << randInt << endl;
+        Record r1 = Record(to_string(randInt), to_string(5.5), to_string(randInt));
+        addr = disk.storeRecord(r1);
+        absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+        bt.insertKey(randInt, absol_addr);
+    }
+    bt.printTree();
+    bt.leafNodeCheck();
+    
     // for (int i=0; i < 10;i++) {
     //     Record r1 = Record(to_string(test[i]), to_string(5.5), to_string(test[i]));
     //     addr = disk.storeRecord(r1);
@@ -90,22 +93,22 @@ void testBPTree2() {
     //     bt.insertKey(test[i], absol_addr);
     //     bt.printTree();
     // }
-    for (int i=1; i < 6;i++) {
-        Record r1 = Record(to_string(i*10), to_string(5.5), to_string(i*10));
-        addr = disk.storeRecord(r1);
-        absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
-        bt.insertKey(i*10, absol_addr);
-        bt.printTree();
-    }
-    Record r1 = Record(to_string(45), to_string(5.5), to_string(45));
-    addr = disk.storeRecord(r1);
-    absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
-    bt.insertKey(45, absol_addr);
+    // for (int i=1; i < 6;i++) {
+    //     Record r1 = Record(to_string(i*10), to_string(5.5), to_string(i*10));
+    //     addr = disk.storeRecord(r1);
+    //     absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    //     bt.insertKey(i*10, absol_addr);
+    //     bt.printTree();
+    // }
+    // Record r1 = Record(to_string(45), to_string(5.5), to_string(45));
+    // addr = disk.storeRecord(r1);
+    // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
+    // bt.insertKey(45, absol_addr);
     // Record r1 = Record(to_string(75), to_string(5.5), to_string(75));
     // addr = disk.storeRecord(r1);
     // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
     // bt.insertKey(75, absol_addr);
-    bt.printTree();
+    // bt.printTree();
 }
 
 

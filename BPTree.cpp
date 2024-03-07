@@ -71,15 +71,12 @@ bool BPTree::splitNode(Node* node, int key, int *address) {
         }else {
             // Add Child in
             parentPtr->addChild(splitNode->getSelfLowerBoundKey(), (int*) splitNode);
-            splitNode->setParentPointer(parentPtr);
         }
     }else {
         // No parent ptr, need to create parent!
         parentPtr = new Node(this->maxKeys);
         parentPtr->addChild(0, (int*)node); //First Ptr so key doesnt matter
         parentPtr->addChild(splitNode->getSelfLowerBoundKey(), (int*) splitNode);
-        node->setParentPointer(parentPtr);
-        splitNode->setParentPointer(parentPtr);
         // TODO: Darren help check if my understanding of this is correct
         // If im the root node and i split
         // THe new parent is the root node
@@ -680,4 +677,26 @@ bool BPTree::deleteNodes(int value) {
         }
     }
     return true;
+}
+
+void BPTree::leafNodeCheck() {
+    Node* curr = this->rootNode;
+    int largestVal= 0;
+    while (!curr->leafNode) {
+        curr = (Node*) curr->pointers[0];
+    }
+
+    while (curr != nullptr) {
+        for (int i=0; i < curr->currKeyCount;i++) {
+            if (curr->keys[i] > largestVal) {
+                largestVal = curr->keys[i];
+            }else {
+                cout << "You dun fucked up" << endl;
+                return;
+            }
+        }
+        curr = (Node*) curr->getNextNodePointer();
+    }
+    cout << "Leaf node check correct" << endl;
+    return;
 }

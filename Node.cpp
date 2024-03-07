@@ -46,6 +46,7 @@ Node* Node::splitNode(int key, int* address){
     if (this->leafNode) {
         //Perform splitting here.
         newNode->setLeafNode(true);
+        newNode->setParentPointer(this->getParentPointer());
         int middleIndex = (this->maxKeys) / 2 ;
         if(key>this->keys[middleIndex])
         {
@@ -67,6 +68,7 @@ Node* Node::splitNode(int key, int* address){
         this->setNextNodePointer((int*)newNode);
 
     }else {
+        newNode->setParentPointer(this->getParentPointer());
         // Internal Node
         int middleIndex = (this->maxKeys+(this->maxKeys%2)) / 2;
 
@@ -220,55 +222,80 @@ bool Node::addChild(int key, int *address) {
         this->currKeyCount++;
         return true;
     }else {
+        Node* child = (Node*) address;
+        child->setParentPointer(this);
         // Non Leaf Node
         if (this->firstPtr == false){
             // First Child of Internal Node
             this->pointers[0] = address;
             this->firstPtr = true;
         }else {
-            int keyPos = 0;
-            // Find Key Position to insert (In terms of pointer index!)
-            if (this->currKeyCount > 0) {
+            // If you're here
+            // Case 1: First pointer added, no keys added yet
+            if (this->currKeyCount <= 0) {
+                this->keys[0] = key;
+                this->pointers[1] = address;
+                this->currKeyCount++;
+            }else {
+            // Case 2: Keys added, find position to insert new key
                 for (int i = 0; i < this->currKeyCount; i++) {
                     if (key < this->keys[i]) {
-                        if (i == 0) {
+                        // Case 2.1: New key added is smaller than smallest key
+                        if (i==0) {
                             Node *firstPtr = (Node *) this->pointers[0];
+                            int firstPtrLB = firstPtr->getSelfLowerBoundKey();
                             // Is key smaller than first ptr
-                            if (key >= firstPtr->getSelfLowerBoundKey()) {
-                                keyPos = 1;
-                            } else {
-                                keyPos = 0;
+                            if (key >= firstPtrLB) {
+                                // Key Bigger
+                                // 0 1 2
+                                //0 1 2 3
+                                // 4 3 2 (stop at 2, cause 2-2=key 0 alr)
+                                for (int k=this->currKeyCount+1;k>1;k--) {
+                                    this->keys[k-1] = this->keys[k-2];
+                                    this->pointers[k] = this->pointers[k-1];
+                                }
+                                this->keys[0] = key;
+                                this->pointers[1] = address;
+                            }else {
+                                // Key Smaller than first pointer's LB
+                                for (int k=this->currKeyCount+1;k>0;k++) {
+                                    if (k>1) {
+                                        this->keys[k-1] = this->keys[k-2];
+                                    }else {
+                                        // K = 1
+                                        this->keys[0] = firstPtrLB;
+                                    }
+                                    this->pointers[k] = this->pointers[k-1];
+                                }
+                                this->pointers[0] = address;
+                                this->updateParentNode();
                             }
-                            break;
+                        }else {
+                            // Case 2.2: New key added is in the middle of keys
+                            // 1 2 3
+                            //0 1 2 3
+                            // 1 4 2 3
+                            //0 1 4 2 3
+                            // 3 + 1 = 4
+                            // 4 3
+                            for (int k=this->currKeyCount+1;k>(i+1);k--) {
+                                this->keys[k-1] = this->keys[k-2];
+                                this->pointers[k] = this->pointers[k-1];
+                            }
+                            this->keys[i] = key;
+                            this->pointers[i+1] = address;
                         }
-                        keyPos = i + 1;
+                        this->currKeyCount++;
+                        break;
+                    }else if(i == this->currKeyCount-1){
+                        // Case 2.3: New Key is larger than all keys
+                        this->keys[this->currKeyCount] = key;
+                        this->pointers[this->currKeyCount+1] = address;
+                        this->currKeyCount++;
                         break;
                     }
-
-                    if (i >= this->currKeyCount - 1) {
-                        //Bigger than all keys
-                        keyPos = i + 2;
-                    }
                 }
-            }else {
-                // First Key of Node, cause only firstPtr exist rn
-                keyPos = 1;
             }
-            // Shift all keys and ptr from keyPos backwards
-            for (int i=this->currKeyCount+1;i>keyPos;i--) {
-                if (i > 1) {
-                    this->keys[i-1] = this->keys[i-2];
-                }else {
-                    this->keys[i - 1] = ((Node*)this->pointers[i-1])->getSelfLowerBoundKey();
-                }
-                this->pointers[i] = this->pointers[i-1];
-            }
-
-            if (keyPos > 0) {
-                this->keys[keyPos - 1] = key;
-            }
-            this->pointers[keyPos] = address;
-            this->currKeyCount++;
         }
         return true;
     }

@@ -65,6 +65,7 @@ Node* Node::splitNode(int key, int* address){
             }
             this->addChild(key, address);
         }
+        newNode->setNextNodePointer(this->getNextNodePointer()); //worse case is set nullptr
         this->setNextNodePointer((int*)newNode);
 
     }else {

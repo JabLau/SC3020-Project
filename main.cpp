@@ -268,36 +268,45 @@ int main()
     
     // Experiment 1
     vector<tempStruct> unsorted_list = experiment_1(&disk);
-    // int n=unsorted_list.size();
-    // cout <<"Length of Unsorted List = "<<n <<endl;
-    // heapSort(unsorted_list, n);
-    // //bubbleSort(unsorted_list, n);
-    // cout <<"Sort Complete" << endl;
-
-
-    // // new vector
-    // vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
-    // int j=0;
-
-    // // Allocate into unique linked list
-    // for (int i=0;i < n; i++) {
-    //     // Check if uniqueArr is empty
-    //     if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
-    //         // Create a tempStruct2
-    //         tempStruct2 temp;
-    //         temp.key = unsorted_list[i].key;
-    //         temp.addresses.push_back(unsorted_list[i].address);
-    //         // Put into uniqueArr
-    //         uniqueArr->push_back(temp);
-    //         j++;
-    //     } else {
-    //         (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
-    //     }
-    // }
-
     BPTree bt = BPTree(3);
-    for (int i=0; i < unsorted_list.size();i++) {
+    int listSize = unsorted_list.size();
+    for (int i=0; i < listSize;i++) {
         bt.insertKey(unsorted_list[i].key, unsorted_list[i].address);
+    }
+    cout <<"Insertion Done" << endl;
+    int n=unsorted_list.size();
+    cout <<"Length of Unsorted List = "<<n <<endl;
+    heapSort(unsorted_list, n);
+    //bubbleSort(unsorted_list, n);
+    cout <<"Sort Complete" << endl;
+
+
+    // new vector
+    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
+    int j=0;
+
+    // Allocate into unique linked list
+    for (int i=0;i < n; i++) {
+        // Check if uniqueArr is empty
+        if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
+            // Create a tempStruct2
+            tempStruct2 temp;
+            temp.key = unsorted_list[i].key;
+            // temp.addresses.push_back(unsorted_list[i].address);
+            // Put into uniqueArr
+            uniqueArr->push_back(temp);
+            j++;
+        } else {
+            (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
+        }
+    }
+    // system("pause");
+    cout << "Check if all can find" << endl;
+    int s = (*uniqueArr).size();
+    for (int i=0;i < s;i++) {
+        if(bt.findByValue((*uniqueArr).at(i).key) == nullptr) {
+            cout << "Key " << (*uniqueArr).at(i).key << " missing?" << endl;
+        }
     }
     // addressInfo addr;
     // int *absol_addr;
@@ -317,7 +326,7 @@ int main()
     // addr = disk.storeRecord(r1);
     // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
     // bt.insertKey(75, absol_addr);
-    bt.printTree();
+    // bt.printTree();
     bt.leafNodeCheck();
     // bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;

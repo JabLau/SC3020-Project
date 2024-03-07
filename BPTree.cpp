@@ -320,7 +320,7 @@ Node* BPTree::findNodeWithValue(int value) {
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
-        for (int i=0;i <= currNode->currKeyCount;i++) { 
+        for (int i=0;i < currNode->currKeyCount;i++) { 
             if (value < currNode->keys[i]) {
                 currNode = (Node*) currNode->pointers[i];
                 foundNextNode = true;
@@ -369,7 +369,7 @@ Node* BPTree::findNodeWithValue(int value) {
     // This the only node and does not have the value
 
     if (foundValue) {
-        cout << "Index nodes Accessed:" << indexNodesAccessed << endl;
+        // cout << "Index nodes Accessed:" << indexNodesAccessed << endl;
         // Found value in this node, return it
         return currNode;
     }

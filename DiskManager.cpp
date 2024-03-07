@@ -211,3 +211,28 @@ void DiskManager::printAllRecords() {
         }
     }
 }
+
+// Method to get record given the address
+Record DiskManager::getRecord(int* recordAddress) {
+    Record r;
+    int blockId = getBlockId(recordAddress);
+    int offset = (recordAddress - getBlockAddress(blockId)) * 4;  // Offset in bytes
+
+    // Check if the record is spanned across blocks
+    if (offset + sizeof(Record) > blockSize) {
+        // Case 1: Record is spanned
+        int sizeLeft = blockSize - offset;
+        int spillOverSize = sizeof(Record) - sizeLeft;
+
+        // Copy the first part of the record
+        memcpy(&r, recordAddress, sizeLeft);
+
+        // Copy the second part of the record from the next block
+        memcpy(reinterpret_cast<char*>(&r) + sizeLeft, getBlockAddress(blockId + 1), spillOverSize);
+    } else {
+        // Case 2: Record is not spanned
+        memcpy(&r, recordAddress, sizeof(Record));
+    }
+
+    return r;
+}

@@ -43,5 +43,7 @@ public:
     int tabulateBlockUsage(vector<int *> recordAddresses);
 
     int tabulateBlockUsageNested(vector<vector<int *>> recordAddresses);
+
+    Record getRecord(int *recordAddress);
 };
 

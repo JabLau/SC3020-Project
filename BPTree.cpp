@@ -63,8 +63,7 @@ void BPTree::printTree(){
 }
 
 bool BPTree::splitNode(Node* node, int key, int *address) {
-    //Node* splitNode = node->splitNode();
-    Node* splitNode;
+    Node* splitNode = node->splitNode(key, address);
     Node* parentPtr = node->getParentPointer();
     if (parentPtr != nullptr) {
         if (parentPtr->canAddChild() == false) {
@@ -77,7 +76,7 @@ bool BPTree::splitNode(Node* node, int key, int *address) {
     }else {
         // No parent ptr, need to create parent!
         parentPtr = new Node(this->maxKeys);
-        parentPtr->addFirstChild((int*)node);
+        parentPtr->addChild(0, (int*)node); //First Ptr so key doesnt matter
         parentPtr->addChild(splitNode->getSelfLowerBoundKey(), (int*) splitNode);
         node->setParentPointer(parentPtr);
         splitNode->setParentPointer(parentPtr);
@@ -116,7 +115,8 @@ bool BPTree::insertKey(int key, int* address) {
 
                     if (i == currNode->currKeyCount - 1) {
                         // Set as last pointer of Internal Node
-                        currNode = (Node *) currNode->pointers[currNode->currKeyCount + 1];
+                        currNode = (Node *) currNode->pointers[currNode->currKeyCount];
+                        break;
                     }
                 }
             }

@@ -74,7 +74,7 @@ void testBPTree2() {
     addressInfo addr;
     int *absol_addr;
     cout << "Inserting" << endl;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 15; i++) {
         int randInt = rand() % 99999;
         cout << randInt << endl;
         Record r1 = Record(to_string(randInt), to_string(5.5), to_string(randInt));

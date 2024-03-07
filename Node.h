@@ -64,6 +64,10 @@ public:
     void mergeNode(Node*);
 
     void removeChildNode(int*);
+
+    void updateParentNode();
+    void parentUpdateChildKey(int* updatedChild);
+
 };
 
 

@@ -34,8 +34,9 @@ Node* Node::splitNode(int key, int* address){
     /*This function aims to split the 2 nodes when full. It accepts key to be inserted and the address of the
      * node to be split.
      * With the current, we need to compare it with the middle key. Middle Key = n/2+1
-     * if key< middle key, transfer from the middle key onwards
-     * if key> middle key, transfer from after the middle key onwards.
+     * For both leaf node and internal node:
+         * if key< middle key, transfer from the middle key onwards
+         * if key> middle key, transfer from after the middle key onwards.
      *
      * 2 Questions:
      * How to delete key
@@ -45,7 +46,7 @@ Node* Node::splitNode(int key, int* address){
     if (this->leafNode) {
         //Perform splitting here.
         newNode->setLeafNode(true);
-        int middleIndex = (this->maxKeys) / 2 +1;
+        int middleIndex = (this->maxKeys) / 2 ;
         if(key>this->keys[middleIndex])
         {
             //Since key>middle key, Transfer from after the middle key onwards
@@ -65,21 +66,54 @@ Node* Node::splitNode(int key, int* address){
         }
         this->setNextNodePointer((int*)newNode);
 
-//        if (this->keys[middleIndex] < key) {
-//            // Transfer 1 less key from left to right side
-//            // As new key belongs to right side
+    }else {
+        // Internal Node
+        int middleIndex = (this->maxKeys+(this->maxKeys%2)) / 2;
+
+        if(key>this->keys[middleIndex])
+        {
+            // Belong to right side
+            //Since key>middle key, Transfer from after the middle key onwards
+            for(int i=middleIndex+1; i<=this->maxKeys; i++)
+            {
+                newNode->addChild(this->keys[i-1],this->pointers[i]);
+                this->currKeyCount--;
+            }
+            newNode->addChild(key,address);
+        }else {
+            //Since key< middle key, transfer from the middle key onwards
+            for (int i = middleIndex; i <=this->maxKeys; i++) {
+                newNode->addChild(this->keys[i-1], this->pointers[i]);
+                this->currKeyCount--;
+            }
+            this->addChild(key, address);
+        }
+
+
+
+
+
+
+
+
+//        if (key ) {
+//            // Belongs to Right Node, Transfer 1 less pointer over
 //            middleIndex++;
 //        }
-//        for (int i = middleIndex, j=0; i < currKeyCount; i++, j++) {
+//
+//        int j = 0;
+//        for (int i = middleIndex; i < currKeyCount; i++, j++) {
 //            newNode->addChild(this->keys[i],this->pointers[i]);
+////            newNode->keys[j] = this->keys[i];
+////            newNode->pointers[j] = this->pointers[i];
+////            newNode->currKeyCount++;
 //            j++;
 //        }
 //
+//        newNode->pointers[j] = this->pointers[this->currKeyCount];
+//
 //        // Update current key count
 //        this->currKeyCount = middleIndex;
-//        newNode->setLeafNode(true);
-//        //Link both leaf nodes together.
-//        // Check if middle key is smaller than the new node's first key
 //        if (this->keys[middleIndex - 1] < key){
 //            // New key belongs to new node
 //            newNode->addChild(key, address);
@@ -106,53 +140,6 @@ Node* Node::splitNode(int key, int* address){
 //
 //        // Set leaf status
 //        newNode->leafNode = true;
-    }else {
-        // Internal Node
-        int middleIndex = ((this->currKeyCount) / 2 )+1;
-        if (this->keys[middleIndex - 1] < key) {
-            // Belongs to Right Node, Transfer 1 less pointer over
-            middleIndex++;
-        }
-
-        int j = 0;
-        for (int i = middleIndex; i < currKeyCount; i++, j++) {
-            newNode->addChild(this->keys[i],this->pointers[i]);
-//            newNode->keys[j] = this->keys[i];
-//            newNode->pointers[j] = this->pointers[i];
-//            newNode->currKeyCount++;
-            j++;
-        }
-
-        newNode->pointers[j] = this->pointers[this->currKeyCount];
-
-        // Update current key count
-        this->currKeyCount = middleIndex;
-        if (this->keys[middleIndex - 1] < key){
-            // New key belongs to new node
-            newNode->addChild(key, address);
-        } else {
-            // New key belongs to curr node
-            this->addChild(key, address);
-        }
-
-
-        // Find Middle
-        // Transfers keys over to newNode
-        // Update curr key count in currNode
-        // Check if new key is smaller than newNode's 1st key
-        // If bigger, newNode->addChild
-        // Is Smaller, this->addChild
-
-        // Return splitNode
-        // Accept in node pointer
-        // Transfer keys and pointers from current node to the new node
-
-
-        // Update current node's key count
-        this->currKeyCount = middleIndex - 1;
-
-        // Set leaf status
-        newNode->leafNode = true;
     }
     return newNode;
 }
@@ -162,6 +149,26 @@ void Node::setChildNodeParent() {
         for (int i = 0; i < this->currKeyCount; i++) {
             Node *temp = (Node*) this->pointers[i];
             temp->setParentPointer(this);
+        }
+    }
+}
+
+void Node::updateParentNode() {
+    Node* parentPtr = this->getParentPointer();
+    if (parentPtr != nullptr) {
+        parentPtr->parentUpdateChildKey((int*)this);
+    }
+}
+
+void Node::parentUpdateChildKey(int* updatedChild) {
+    for (int i=0; i <= currKeyCount;i++) {
+        if (pointers[i] == updatedChild) {
+            if (i>0) {
+                Node* child = (Node*)pointers[i];
+                this->keys[i-1] = child->getSelfLowerBoundKey();
+                this->updateParentNode();
+            }
+            break;
         }
     }
 }
@@ -197,6 +204,9 @@ bool Node::addChild(int key, int *address) {
                         // Insert new Key and address
                         this->keys[i] = key;
                         this->pointers[i] = address;
+                        if (i==0) {
+                            this->updateParentNode();
+                        }
                         break;
                     }
                 }

@@ -270,7 +270,7 @@ bool Node::addChild(int key, int *address) {
                                 this->pointers[1] = address;
                             }else {
                                 // Key Smaller than first pointer's LB
-                                for (int k=this->currKeyCount+1;k>0;k++) {
+                                for (int k=this->currKeyCount+1;k>0;k--) {
                                     if (k>1) {
                                         this->keys[k-1] = this->keys[k-2];
                                     }else {

@@ -268,7 +268,7 @@ int main()
     
     // Experiment 1
     vector<tempStruct> unsorted_list = experiment_1(&disk);
-    BPTree bt = BPTree(3);
+    BPTree bt = BPTree(5);
     int listSize = unsorted_list.size();
     for (int i=0; i < listSize;i++) {
         cout << "Adding" << unsorted_list[i].key << endl;

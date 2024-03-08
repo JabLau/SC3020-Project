@@ -271,7 +271,9 @@ int main()
     BPTree bt = BPTree(3);
     int listSize = unsorted_list.size();
     for (int i=0; i < listSize;i++) {
+        cout << "Adding" << unsorted_list[i].key << endl;
         bt.insertKey(unsorted_list[i].key, unsorted_list[i].address);
+        bt.printTree();
     }
     cout <<"Insertion Done" << endl;
     int n=unsorted_list.size();
@@ -328,6 +330,7 @@ int main()
     // bt.insertKey(75, absol_addr);
     // bt.printTree();
     bt.leafNodeCheck();
+    bt.printTree();
     // bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;
 //    vector<int*> find500 = bt.findByValue(500);

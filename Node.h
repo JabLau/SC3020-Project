@@ -17,7 +17,7 @@ public:
     Node* parentPtr; // Might be unsafe, cause comparing nullptr is inconsistent!
     bool parentSet = false;
     bool firstPtr = false; // For Non-leaf Nodes, if first ptr has been set(No key)
-
+    bool nextNodeSet = false;
     Node(int maxKeys);
     ~Node();
     bool isFull();

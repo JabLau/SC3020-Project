@@ -73,7 +73,7 @@ Node* Node::splitNode(int key, int* address){
         // Internal Node
         int middleIndex = (this->maxKeys+(this->maxKeys%2)) / 2;
 
-        if(key>this->keys[middleIndex])
+        if(key>this->keys[middleIndex-1])
         {
             // Belong to right side
             //Since key>middle key, Transfer from after the middle key onwards
@@ -150,7 +150,7 @@ Node* Node::splitNode(int key, int* address){
 
 void Node::setChildNodeParent() {
     if (!this->leafNode) {
-        for (int i = 0; i < this->currKeyCount; i++) {
+        for (int i = 0; i <= this->currKeyCount; i++) {
             Node *temp = (Node*) this->pointers[i];
             temp->setParentPointer(this);
         }
@@ -234,9 +234,20 @@ bool Node::addChild(int key, int *address) {
             // If you're here
             // Case 1: First pointer added, no keys added yet
             if (this->currKeyCount <= 0) {
-                this->keys[0] = key;
-                this->pointers[1] = address;
-                this->currKeyCount++;
+                Node *firstPtr = (Node *) this->pointers[0];
+                int firstPtrLB = firstPtr->getSelfLowerBoundKey();
+                if (key < firstPtrLB) {
+                    // Case 1.1: New key smaller than first ptr
+                    this->pointers[1] = this->pointers[0];
+                    this->keys[0] = firstPtrLB;
+                    this->pointers[0] = address;
+                    this->currKeyCount++;
+                }else {
+                    // Case 1.2: New key bigger than first ptr
+                    this->keys[0] = key;
+                    this->pointers[1] = address;
+                    this->currKeyCount++;
+                }
             }else {
             // Case 2: Keys added, find position to insert new key
                 for (int i = 0; i < this->currKeyCount; i++) {
@@ -315,14 +326,19 @@ void Node::setLeafNode(bool isLeaf) {
 }
 
 void Node::setNextNodePointer(int *nextLocation) {
+    if (nextLocation == nullptr) {
+        return;
+    }
+
     if (this->leafNode) {
         this->pointers[this->maxKeys] = nextLocation;
+        this->nextNodeSet = true;
     }
 }
 
 
 int* Node::getNextNodePointer() {
-    if (this->leafNode) {
+    if (this->leafNode && this->nextNodeSet) {
         return this->pointers[this->maxKeys];
     }
     return nullptr;

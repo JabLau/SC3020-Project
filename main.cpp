@@ -63,6 +63,25 @@ vector<tempStruct> experiment_1(DiskManager* disk){
     return unsorted_list;
 }
 
+void experiment_2(BPTree* bt){
+    bt->returnNodeCount();
+}
+
+void experiment_3(BPTree* bt, DiskManager *disk){
+    vector<int*> *addressList = bt->findByValue(1000, true);
+    disk->tabulateBlockUsage(*addressList);
+}
+
+void experiment_4(BPTree* bt, DiskManager *disk){
+    vector<vector<int*>> *addressList = bt->findByRange(30000,40000, true);
+    disk->tabulateBlockUsageNested(*addressList);
+}
+
+void experiment_5(BPTree* bt){
+    bt->deleteNodes(1000);
+    bt->returnNodeCount();
+}
+
 void testBPTree2() {
     int blockSize = 200; // in bytes
     int totalMemSize = 250 * 1000000; //in MB
@@ -268,48 +287,52 @@ int main()
     
     // Experiment 1
     vector<tempStruct> unsorted_list = experiment_1(&disk);
-    BPTree bt = BPTree(5);
+    BPTree bt = BPTree(15);
     int listSize = unsorted_list.size();
     for (int i=0; i < listSize;i++) {
         cout << "Adding" << unsorted_list[i].key << endl;
         bt.insertKey(unsorted_list[i].key, unsorted_list[i].address);
-        bt.printTree();
+        //bt.printTree();
     }
     cout <<"Insertion Done" << endl;
-    int n=unsorted_list.size();
-    cout <<"Length of Unsorted List = "<<n <<endl;
-    heapSort(unsorted_list, n);
-    //bubbleSort(unsorted_list, n);
-    cout <<"Sort Complete" << endl;
+    experiment_2(&bt);
+    experiment_3(&bt, &disk);
+    experiment_4(&bt, &disk);
+    bt.printTree();
+    // int n=unsorted_list.size();
+    // cout <<"Length of Unsorted List = "<<n <<endl;
+    // heapSort(unsorted_list, n);
+    // //bubbleSort(unsorted_list, n);
+    // cout <<"Sort Complete" << endl;
 
 
-    // new vector
-    vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
-    int j=0;
+    // // new vector
+    // vector<tempStruct2> *uniqueArr = new vector<tempStruct2>;
+    // int j=0;
 
-    // Allocate into unique linked list
-    for (int i=0;i < n; i++) {
-        // Check if uniqueArr is empty
-        if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
-            // Create a tempStruct2
-            tempStruct2 temp;
-            temp.key = unsorted_list[i].key;
-            // temp.addresses.push_back(unsorted_list[i].address);
-            // Put into uniqueArr
-            uniqueArr->push_back(temp);
-            j++;
-        } else {
-            (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
-        }
-    }
-    // system("pause");
-    cout << "Check if all can find" << endl;
-    int s = (*uniqueArr).size();
-    for (int i=0;i < s;i++) {
-        if(bt.findByValue((*uniqueArr).at(i).key) == nullptr) {
-            cout << "Key " << (*uniqueArr).at(i).key << " missing?" << endl;
-        }
-    }
+    // // Allocate into unique linked list
+    // for (int i=0;i < n; i++) {
+    //     // Check if uniqueArr is empty
+    //     if (uniqueArr->empty() || (*uniqueArr)[j-1].key != unsorted_list[i].key){
+    //         // Create a tempStruct2
+    //         tempStruct2 temp;
+    //         temp.key = unsorted_list[i].key;
+    //         // temp.addresses.push_back(unsorted_list[i].address);
+    //         // Put into uniqueArr
+    //         uniqueArr->push_back(temp);
+    //         j++;
+    //     } else {
+    //         (*uniqueArr)[j-1].addresses.push_back(unsorted_list[i].address);
+    //     }
+    // }
+    // // system("pause");
+    // cout << "Check if all can find" << endl;
+    // int s = (*uniqueArr).size();
+    // for (int i=0;i < s;i++) {
+    //     if(bt.findByValue((*uniqueArr).at(i).key, false) == nullptr) {
+    //         cout << "Key " << (*uniqueArr).at(i).key << " missing?" << endl;
+    //     }
+    // }
     // addressInfo addr;
     // int *absol_addr;
     // Record r1 = Record(to_string(75), to_string(5.5), to_string(75));
@@ -329,8 +352,8 @@ int main()
     // absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
     // bt.insertKey(75, absol_addr);
     // bt.printTree();
-    bt.leafNodeCheck();
-    bt.printTree();
+    // bt.printTree();
+    // bt.leafNodeCheck();
     // bt.bulkLoad(*uniqueArr, uniqueArr->size());
 //    cout << "Retrieve numVotes = 500" << endl;
 //    vector<int*> find500 = bt.findByValue(500);

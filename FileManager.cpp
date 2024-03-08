@@ -70,7 +70,7 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
         }
 
        // Break after 10 lines
-       if (line_num > 40) {
+       if (line_num > 1500) {
            break;
        }
     }

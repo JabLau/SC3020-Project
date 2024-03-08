@@ -62,6 +62,49 @@ void BPTree::printTree(){
     }
 }
 
+void BPTree::returnNodeCount() {
+        // Check if root node is empty, if empty means tree is empty
+    if (this->rootNode == nullptr) {
+        // Tree is empty
+        cout << "Tree is empty" << endl;
+        return;
+    }
+
+    // Use queue to do BFS
+    queue<Node*> fifoQueue;
+    fifoQueue.push(this->rootNode);
+    int level = 0;
+    int nodeCount = 0;
+    // Main loop to print tree
+    while (!fifoQueue.empty()) {
+        int nodesInLevel = fifoQueue.size();
+
+        for (int i=0; i<nodesInLevel; i++){
+            Node* currNode = fifoQueue.front();
+            fifoQueue.pop();
+            nodeCount++;
+
+            // enqueue all child nodes of an internal node
+            if (!currNode->leafNode) {
+                for (int j=0; j<=currNode->currKeyCount; j++){
+                    fifoQueue.push((Node*) currNode->pointers[j]);
+                }
+            }
+        }
+        level++;
+    }
+
+    cout << "B+ Tree n:" << this->maxKeys << endl;
+    cout << "B+ Tree Node Count:" << nodeCount << endl;
+    cout << "B+ Tree Total Levels:" << level << endl;
+    cout << "Root Node Content: [";
+    Node* root = this->rootNode;
+    for (int i=0;i < root->currKeyCount;i++) {
+        cout << " " << root->keys[i];
+    }
+    cout << " ]" << endl;
+}
+
 bool BPTree::splitNode(Node* node, int key, int *address) {
     Node* splitNode = node->splitNode(key, address);
     Node* parentPtr = node->getParentPointer();
@@ -97,7 +140,7 @@ bool BPTree::insertKey(int key, int* address) {
         root->addChild(key, (int *) arr);
         this->rootNode = root;
     } else {
-        vector<int *> *findArr = this->findByValue(key);
+        vector<int *> *findArr = this->findByValue(key,false);
         if (findArr != nullptr) {
             (*findArr).push_back(address);
         } else {
@@ -282,8 +325,8 @@ void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
 //    navNode->printNode();
 //}
 
-vector<int*>* BPTree::findByValue(int value) {
-    Node *currNode = this->findNodeWithValue(value);
+vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
+    Node *currNode = this->findNodeWithValue(value, printAccessed);
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
         return nullptr;
@@ -313,7 +356,7 @@ vector<int*>* BPTree::findByValue(int value) {
     return nullptr;
 }
 
-Node* BPTree::findNodeWithValue(int value) {
+Node* BPTree::findNodeWithValue(int value, bool printAccessed) {
     Node* currNode = this->rootNode;
     bool foundNextNode;
     int indexNodesAccessed = 1; // Do We count Root node as Index Node Accessed?
@@ -335,7 +378,6 @@ Node* BPTree::findNodeWithValue(int value) {
         }
         indexNodesAccessed++;
     }
-    indexNodesAccessed--; // Last node accessed is a Leaf Node, Not counted!
 
     // Value < Smallest value in B+Tree, cannot find
     // Value > Largest value in B+Tree, cannot find
@@ -369,7 +411,9 @@ Node* BPTree::findNodeWithValue(int value) {
     // This the only node and does not have the value
 
     if (foundValue) {
-        // cout << "Index nodes Accessed:" << indexNodesAccessed << endl;
+        if (printAccessed) {
+            cout << "B+ Tree Index nodes Accessed:" << indexNodesAccessed << endl;
+        }
         // Found value in this node, return it
         return currNode;
     }
@@ -378,14 +422,15 @@ Node* BPTree::findNodeWithValue(int value) {
     return nullptr;
 }
 
-vector<vector<int*>> BPTree::findByRange(int start, int end) {
+vector<vector<int*>>* BPTree::findByRange(int start, int end,bool printAccessed) {
     // Implement checks to prevent end < start?
-
-    Node *currNode = this->findStartingNodeForRange(start);
-    vector<vector<int*>> defaultRtn = {};
+    int *indexNodesAccessed = new int();
+    (*indexNodesAccessed) = 1;
+    Node *currNode = this->findStartingNodeForRange(start, indexNodesAccessed);
+    vector<vector<int*>> *defaultRtn = new vector<vector<int*>>;
     if (currNode == nullptr) {
         cout << "Cannot find node with value" << endl;
-        return defaultRtn;
+        return nullptr;
     }
 
     double totalAvgRating = 0; 
@@ -400,7 +445,7 @@ vector<vector<int*>> BPTree::findByRange(int start, int end) {
                     overshot = true;
                     break;
                 }
-                defaultRtn.push_back((*(vector<int*>*) currNode->pointers[i]));
+                defaultRtn->push_back((*(vector<int*>*) currNode->pointers[i]));
 //                tempRecord = (Record*) currNode->pointers[i];
 //                totalAvgRating += tempRecord->avgRating;
 //                recordCount++;
@@ -411,15 +456,18 @@ vector<vector<int*>> BPTree::findByRange(int start, int end) {
             break;
         }
         currNode = (Node*) currNode->getNextNodePointer();
+        (*indexNodesAccessed)++;
     }while (currNode != nullptr);
 
+    if (printAccessed) {
+        cout << "B+ Tree Index nodes Accessed:" << (*indexNodesAccessed) << endl;
+    }
     return defaultRtn;
 }
 
-Node* BPTree::findStartingNodeForRange(int value) {
+Node* BPTree::findStartingNodeForRange(int value,int *indexNodesAccessed) {
     Node* currNode = this->rootNode;
     bool foundNextNode;
-    int indexNodesAccessed = 1; // Do We count Root node as Index Node Accessed?
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
@@ -436,9 +484,8 @@ Node* BPTree::findStartingNodeForRange(int value) {
             // TODO: Check if there is a pointer here? But should have right?
             currNode = (Node*) currNode->pointers[currNode->currKeyCount];
         }
-        indexNodesAccessed++;
+        (*indexNodesAccessed)++;
     }
-    indexNodesAccessed--; // Last node accessed is a Leaf Node, Not counted!
 
     // Value < Smallest value in B+Tree, cannot find
     // Value > Largest value in B+Tree, cannot find
@@ -461,6 +508,7 @@ Node* BPTree::findStartingNodeForRange(int value) {
             break; // Found, now GTFO of loop
         }
         currNode = (Node*) currNode->getNextNodePointer(); // Go to next node
+        (*indexNodesAccessed)++;
     }while (currNode != nullptr);
     // Terminate if found the value or
     // If reach end of line without finding value
@@ -468,7 +516,6 @@ Node* BPTree::findStartingNodeForRange(int value) {
     // This the only node and does not have the value
 
     if (foundValue) {
-        cout << "Index nodes Accessed:" << indexNodesAccessed << endl;
         // Found value in this node, return it
         return currNode;
     }
@@ -482,7 +529,7 @@ bool BPTree::deleteNodes(int value) {
     Node* parentNode;
     Node* leftNode;
     Node* rightNode;
-    currNode = findNodeWithValue(value);
+    currNode = findNodeWithValue(value, false);
 
     if (currNode == nullptr) {
         return false;
@@ -516,7 +563,7 @@ bool BPTree::deleteNodes(int value) {
                     borrowedStruct = leftNode->borrowKeyCauseDeletion(true);
                     borrowed = true;
                     // Insert to front of currNode
-                    currNode->addChildFront(borrowedStruct.key, borrowedStruct.address);
+                    currNode->addChild(borrowedStruct.key, borrowedStruct.address);
                     changed =(int*) currNode;
                 }
             }
@@ -532,24 +579,24 @@ bool BPTree::deleteNodes(int value) {
             }
             
             // Update B+ Tree Parents for Borrowed Nodes
-            if (borrowed) {
-                Node* navParent = ((Node*)changed)->getParentPointer();
-                while (navParent != nullptr) {
-                    for (int i=0;i<navParent->currKeyCount;i++) {
-                        if (navParent->pointers[i] == changed) {
-                            if (i > 0) {
-                                navParent->keys[i-1] = getLowerBoundOfSubTree((Node*) changed);
-                                navParent = nullptr;
-                            }
-                            break;
-                        }
-                    }
-                    if (navParent != nullptr) {
-                        changed =(int*) navParent;
-                        navParent = navParent->getParentPointer();
-                    }
-                }
-            }
+            // if (borrowed) {
+            //     Node* navParent = ((Node*)changed)->getParentPointer();
+            //     while (navParent != nullptr) {
+            //         for (int i=0;i<navParent->currKeyCount;i++) {
+            //             if (navParent->pointers[i] == changed) {
+            //                 if (i > 0) {
+            //                     navParent->keys[i-1] = getLowerBoundOfSubTree((Node*) changed);
+            //                     navParent = nullptr;
+            //                 }
+            //                 break;
+            //             }
+            //         }
+            //         if (navParent != nullptr) {
+            //             changed =(int*) navParent;
+            //             navParent = navParent->getParentPointer();
+            //         }
+            //     }
+            // }
 
             if (!borrowed) {
                 Node* removedNode;

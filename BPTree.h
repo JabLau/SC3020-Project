@@ -16,6 +16,7 @@ public:
     Node* rootNode = nullptr;
 
     BPTree(int maxKeys);
+    
 
     bool splitNode(Node* node, int key, int *address);
     bool insertKey(int key, int *address);
@@ -23,11 +24,12 @@ public:
     bool bulkLoad(std::vector<tempStruct2> &list, int size);
     void ensureNodeValid(Node*, Node*);
     void printTree();
+    void returnNodeCount();
 
-    Node* findNodeWithValue(int value);
-    Node* findStartingNodeForRange(int value);
-    vector<vector<int*>> findByRange(int, int);
-    vector<int*>* findByValue(int);
+    Node* findNodeWithValue(int value,bool);
+    Node* findStartingNodeForRange(int value,int*);
+    vector<vector<int*>>* findByRange(int, int,bool);
+    vector<int*>* findByValue(int,bool);
 
     bool deleteNodes(int value);
 

@@ -70,9 +70,9 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
         }
 
        // Break after 10 lines
-       if (line_num > 1500) {
-           break;
-       }
+    //    if (line_num > 1500) {
+    //        break;
+    //    }
     }
     return addr_NumVotes_list;
 }

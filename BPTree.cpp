@@ -692,12 +692,13 @@ void BPTree::leafNodeCheck() {
             if (curr->keys[i] > largestVal) {
                 largestVal = curr->keys[i];
             }else {
-                cout << "You dun fucked up" << endl;
+                cout << "****Leaf check FAILED FAILED FAILED!!!!****" << endl;
                 return;
             }
         }
         curr = (Node*) curr->getNextNodePointer();
     }
     cout << "Leaf node check correct" << endl;
+    cout << "Largest Value =" << largestVal << endl;
     return;
 }

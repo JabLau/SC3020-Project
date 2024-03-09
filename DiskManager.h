@@ -45,5 +45,11 @@ public:
     int tabulateBlockUsageNested(vector<vector<int *>> recordAddresses);
 
     Record getRecord(int *recordAddress);
+
+    vector<int *> *searchAllRecords(int numVotesKey);
+
+    vector<int *> *searchAllRecordsRange(int numVotesStartRange, int numVotesEndRange);
+
+    void searchAllRecordsDeletion(int numVotesKey);
 };
 

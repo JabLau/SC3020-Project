@@ -65,9 +65,9 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
 
         // Increment line number
         line_num++;
-        if (line_num % 1000 == 0) {
-            cout << "\r" <<  line_num;
-        }
+//        if (line_num % 1000 == 0) {
+//            cout << "\r" <<  line_num;
+//        }
 
        // Break after 10 lines
     //    if (line_num > 1500) {

@@ -20,6 +20,7 @@
 #include "tempStruct.h"
 #include <vector>
 #include <cstdlib>
+#include <chrono>
 
 using namespace std;
 
@@ -34,10 +35,6 @@ vector<tempStruct> experiment_1(DiskManager* disk){
     // Load the data from disk
     FileManager fm = FileManager();
     vector<tempStruct> unsorted_list = fm.load_data(disk);
-//    for (tempStruct elem : unsorted_list)
-//    {
-//        std::cout << elem.key <<" "<< elem.address<< " ";
-//    }
     std::cout << unsorted_list.size() <<" "<< endl;
     int dashLength = 20;
     // Print leading dashes
@@ -64,22 +61,76 @@ vector<tempStruct> experiment_1(DiskManager* disk){
 }
 
 void experiment_2(BPTree* bt){
+    cout<<"Experiment 2"<<endl;
     bt->returnNodeCount();
 }
 
 void experiment_3(BPTree* bt, DiskManager *disk){
-    vector<int*> *addressList = bt->findByValue(1000, true);
-    disk->tabulateBlockUsage(*addressList);
+    cout<<"Experiment 3"<<endl;
+    auto startTime = std::chrono::high_resolution_clock::now();
+    vector<int*> *addressList = bt->findByValue(500, true);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
+    int blocksUsed = disk->tabulateBlockUsage(*addressList);
+    cout << "Data blocks accessed (Index): " << blocksUsed << endl;
+    int count = 0;
+    float sum=0.0;
+    for (int* addr: *addressList){
+        // Get record
+        Record r;
+        r = disk->getRecord(addr);
+        count++;
+        sum+= r.avgRating;
+    }
+    float avgRatings = 0.0;
+    avgRatings = sum / count;
+    cout << "Average Ratings for records 500: " << avgRatings << endl;
+    cout << "Running time of retrieval process: " << duration << " milliseconds." << endl;
+    // Sequential or linear scan
+    disk->searchAllRecords(500);
 }
 
 void experiment_4(BPTree* bt, DiskManager *disk){
+    cout<<"Experiment 4"<<endl;
+    auto startTime = std::chrono::high_resolution_clock::now();
     vector<vector<int*>> *addressList = bt->findByRange(30000,40000, true);
-    disk->tabulateBlockUsageNested(*addressList);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    // Calculate average of records in addressList
+    int count=0;
+    float sum=0.0;
+    int blocksUsed=0;
+    for (vector<int*> vec : *addressList){
+        blocksUsed += disk->tabulateBlockUsage(vec);
+        for (int* addr: vec){
+            // Get record
+            Record r;
+            r = disk->getRecord(addr);
+            count++;
+            sum+= r.avgRating;
+        }
+    }
+    float avgRatings = 0.0;
+    avgRatings = sum / count;
+    cout << "Data block accessed (Index): " << blocksUsed << endl;
+    cout << "Average Ratings for records in between 30k - 40k: " << avgRatings << endl;
+    cout << "Running time of retrieval process: " << duration << " milliseconds." << endl;
+    disk->searchAllRecordsRange(30000, 40000);
 }
 
-void experiment_5(BPTree* bt){
+void experiment_5(BPTree* bt, DiskManager *disk){
+    cout<<"Experiment 5"<<endl;
+    auto startTime = std::chrono::high_resolution_clock::now();
     bt->deleteNodes(1000);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
     bt->returnNodeCount();
+    cout << "Running time of deletion process: " << duration << " milliseconds." << endl;
+    disk->searchAllRecordsDeletion(1000);
 }
 
 void testBPTree2() {
@@ -102,9 +153,9 @@ void testBPTree2() {
         absol_addr = disk.getBlockAddress(addr.blockId)+addr.offset;
         bt.insertKey(randInt, absol_addr);
     }
-    bt.printTree();
-    bt.leafNodeCheck();
-    
+//    bt.printTree();
+//    bt.leafNodeCheck();
+//
     // for (int i=0; i < 10;i++) {
     //     Record r1 = Record(to_string(test[i]), to_string(5.5), to_string(test[i]));
     //     addr = disk.storeRecord(r1);
@@ -158,49 +209,6 @@ void testBPTree(vector<tempStruct> &arr){
     //bt.findByRange(100,101);
 }
 
-int partition(vector<tempStruct> &arr,int low,int high)
-{
-    //choose the pivot
-//    for (tempStruct num : arr) {
-//        std::cout << num.key << " ";
-//    }
-//    std::cout <<" " << endl;
-    int pivot=arr[high].key;
-    //Index of smaller element and Indicate
-    //the right position of pivot found so far
-    int i=(low-1);
-
-    for(int j=low;j<=high;j++)
-    {
-        //If current element is smaller than the pivot
-        if(arr[j].key<pivot)
-        {
-            //Increment index of smaller element
-            i++;
-            swap(arr[i],arr[j]);
-        }
-    }
-    swap(arr[i+1],arr[high]);
-    return (i+1);
-}
-
-// The Quicksort function Implement
-
-void quickSort(vector<tempStruct> &arr,int low,int high)
-{
-    // when low is less than high
-    if(low<high)
-    {
-        // pi is the partition return index of pivot
-
-        int pi=partition(arr,low,high);
-        //Recursion Call
-        //smaller element than pivot goes left and
-        //higher element goes right
-        quickSort(arr,low,pi-1);
-        quickSort(arr,pi+1,high);
-    }
-}
 
 void heapify(vector<tempStruct> &arr, int N, int i)
 {
@@ -287,10 +295,10 @@ int main()
     
     // Experiment 1
     vector<tempStruct> unsorted_list = experiment_1(&disk);
-    BPTree bt = BPTree(15);
+    BPTree bt = BPTree(16);
     int listSize = unsorted_list.size();
     for (int i=0; i < listSize;i++) {
-        cout << "Adding" << unsorted_list[i].key << endl;
+        // cout << "Adding" << unsorted_list[i].key << endl;
         bt.insertKey(unsorted_list[i].key, unsorted_list[i].address);
         //bt.printTree();
     }
@@ -298,7 +306,8 @@ int main()
     experiment_2(&bt);
     experiment_3(&bt, &disk);
     experiment_4(&bt, &disk);
-    bt.printTree();
+    experiment_5(&bt, &disk);
+    //bt.printTree();
     // int n=unsorted_list.size();
     // cout <<"Length of Unsorted List = "<<n <<endl;
     // heapSort(unsorted_list, n);

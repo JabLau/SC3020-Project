@@ -328,7 +328,7 @@ void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
 vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
     Node *currNode = this->findNodeWithValue(value, printAccessed);
     if (currNode == nullptr) {
-        cout << "Cannot find node with value" << endl;
+        //cout << "Cannot find node with value" << endl;
         return nullptr;
     }
 
@@ -429,7 +429,7 @@ vector<vector<int*>>* BPTree::findByRange(int start, int end,bool printAccessed)
     Node *currNode = this->findStartingNodeForRange(start, indexNodesAccessed);
     vector<vector<int*>> *defaultRtn = new vector<vector<int*>>;
     if (currNode == nullptr) {
-        cout << "Cannot find node with value" << endl;
+        //cout << "Cannot find node with value" << endl;
         return nullptr;
     }
 

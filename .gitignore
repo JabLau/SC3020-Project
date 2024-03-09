@@ -1,6 +1,4 @@
-*cmake-build-debug
 *.idea
-CMakeLists.txt
 .vs/ProjectSettings.json
 .vs/SC3020-Project/v16/.suo
 .vs/SC3020-Project/v16/Browse.VC.db

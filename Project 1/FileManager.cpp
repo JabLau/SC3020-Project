@@ -5,6 +5,8 @@
 #include "FileManager.h"
 #include "Record.h"
 #include "DiskManager.h"
+#include "tempStruct.h"
+#include <iostream>
 
 using namespace std;
 
@@ -21,17 +23,20 @@ vector<string> FileManager::strSplitByDelim(const string &s, char delim) {
     return result;
 }
 
-void FileManager::load_data(DiskManager &disk) {
+vector<tempStruct> FileManager::load_data(DiskManager* disk) {
     // Load data.tsv file into
-    ifstream infile("../data.tsv");
-
+    ifstream infile("data.tsv");
+    //define array here.
+    std::vector<tempStruct> addr_NumVotes_list;
     // Line-based parsing, using string streams
     // temp variable to store the line
     string line;
     // temp var for line num
     unsigned int line_num = 0;
-    // Read the file line by line
-    while ( getline(infile, line) )
+    // Read the file line by 
+    cout << "Starting File Read" << endl;
+    cout << "Current Line: " << endl;
+    while (getline(infile, line) )
     {
         // Process each line
         // Delimiter is tab
@@ -45,8 +50,10 @@ void FileManager::load_data(DiskManager &disk) {
         vector<string> col = strSplitByDelim (line, '\t');
 
         // Store record in disk
-        addressInfo addr = disk.storeRecord(Record(col[0], col[1], col[2]));
+        addressInfo addr = disk->storeRecord(new Record(col[0], col[1], col[2]));
         // If record is stored successfully, increment totalRecords
+        tempStruct s1 = {stoi(col[2]), disk->getBlockAddress(addr.blockId)+addr.offset};
+        addr_NumVotes_list.push_back(s1);
         if (addr.blockId != -1 && addr.offset != -1){
             recordCount++;
         }
@@ -58,12 +65,15 @@ void FileManager::load_data(DiskManager &disk) {
 
         // Increment line number
         line_num++;
+       if (line_num % 1000 == 0) {
+           cout << "\r" <<  line_num;
+       }
 
-//        // Break after 10 lines
-//        if (line_num > 10) {
-//            break;
-//        }
+       // Break after 10 lines
+    //    if (line_num > 1500) {
+    //        break;
+    //    }
     }
+    return addr_NumVotes_list;
 }
-
 

@@ -3,6 +3,9 @@
 #include "record.h"
 #include <iostream>
 #include <cstring>
+#include <vector>
+#include "tempStruct.h"
+#include <chrono>
 
 using namespace std;
 
@@ -27,6 +30,7 @@ DiskManager::DiskManager(int blockSize, int totalSize) {
 
 // Destructor
 DiskManager::~DiskManager() {
+    cout << "Freeing Disk Manager" << this->memStartAddress << endl;
 	free(this->memStartAddress);
 }
 
@@ -35,6 +39,61 @@ int* DiskManager::getBlockAddress(int blockId) {
     // 4 byte addressible memory
     return this->memStartAddress + (blockId * (this->blockSize/4));
     }
+
+int DiskManager::getBlockId(int* address) {
+    return (address - this->memStartAddress) / (this->blockSize/4);
+}
+
+bool DiskManager::checkExist(vector<int> temp, int key){
+    for (int i : temp){
+        if (i == key){
+            return true;
+        }
+    }
+    return false;
+}
+
+// Method to tabulate vector of record addresses into blocks used
+int DiskManager::tabulateBlockUsage(vector<int*> recordAddresses) {
+    // Vector to store block ids
+    vector<int> blockIds;
+
+    // Loop thru vector of addresses
+    for (int i=0; i<recordAddresses.size(); i++) {
+        // Convert address to block id
+        int blockId = getBlockId(recordAddresses[i]);
+        if (checkExist(blockIds, blockId)){
+            continue;
+        }
+        else{
+            blockIds.push_back(blockId);
+        }
+    }
+
+    return blockIds.size();
+}
+
+int DiskManager::tabulateBlockUsageNested(vector<vector<int*>> recordAddresses) {
+    vector<int> blockIds;
+
+    // 2 loops
+    // Loop thru vector of vectors
+    for (int i=0; i<recordAddresses.size(); i++) {
+        for (int k=0; k<recordAddresses[i].size(); k++) {
+            // Convert address to block id
+            int blockId = getBlockId((recordAddresses[i][k]));
+            if (checkExist(blockIds, blockId)) {
+                continue;
+            }else{
+                blockIds.push_back(blockId);
+            }
+        }
+
+        return blockIds.size();
+    }
+
+    return 0;
+}
 
 // Method to get next available memory address
 addressInfo DiskManager::getNextAvailableAddress() {
@@ -55,7 +114,7 @@ addressInfo DiskManager::getNextAvailableAddress() {
     return {-1, -1};
 }
 
-addressInfo DiskManager::storeRecord(Record r) {
+addressInfo DiskManager::storeRecord(Record *r) {
 	// Check if any memory available
 	if (totalRecords >= maxRecords ) {
 		return {-1, -1};
@@ -76,7 +135,7 @@ addressInfo DiskManager::storeRecord(Record r) {
     // Case 2: Address has the space to accommodate the whole record, no spanning needed
     if (blockSize - ((getBlockAddress(nextAvailableAddress.blockId)+ nextAvailableAddress.offset)- getBlockAddress(nextAvailableAddress.blockId)) >= sizeof(Record)) {
         // Enough space to store the record without spanning
-        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeof(Record));
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, r, sizeof(Record));
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeof(Record);
     }
@@ -89,11 +148,11 @@ addressInfo DiskManager::storeRecord(Record r) {
 
         // Copy first half of the record to the original block
         cout << "Size left: " << sizeLeft << ", Spill over size: " << spillOverSize << endl;
-        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, &r, sizeLeft);
+        memcpy(getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset, r, sizeLeft);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId] -= sizeLeft;
 
-        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), reinterpret_cast<char*>(&r) + sizeLeft, spillOverSize);
+        memcpy(getBlockAddress(nextAvailableAddress.blockId+1), reinterpret_cast<char*>(r) + sizeLeft, spillOverSize);
         // memcpy(getBlockAddress(nextAvailableAddress.blockId+1), (&r)+(sizeLeft/4), spillOverSize);
         // Update array to keep track of free space in each block in bytes
         this->freeSpacePerBlock[nextAvailableAddress.blockId+1] -= spillOverSize;
@@ -102,6 +161,8 @@ addressInfo DiskManager::storeRecord(Record r) {
     // Print relative address and return the absolute address of the record
     // cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
     return {nextAvailableAddress.blockId, nextAvailableAddress.offset};
+    //cout << "Record inserted on block id, offset: " << nextAvailableAddress.blockId << ", " << nextAvailableAddress.offset << endl;
+    //return getBlockAddress(nextAvailableAddress.blockId) + nextAvailableAddress.offset;
 }
 
 // Sequentially read the records from the memory
@@ -150,4 +211,240 @@ void DiskManager::printAllRecords() {
             }
         }
     }
+}
+
+// Sequentially read the records from the memory
+vector<int*>* DiskManager::searchAllRecords(int numVotesKey) {
+    // Start timing
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    // Vector
+    vector<int*> *ptrArr = new vector<int*>;
+    int blockCounter=0;
+    bool recordExists;
+
+    Record r;
+    // Loop through blocks t// Block counterhat have at least 1 record
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+        recordExists = false;
+        // Loop through the block
+        for (int j = 0; j < this->blockSize / 4; j++) {
+            // If the byte is not -1, it is the start of a record
+            if (*(this->getBlockAddress(i) + j) != -1) {
+                recordExists = true;
+                // Read record
+                if (j * 4 + sizeof(Record) > this->blockSize) {
+                    // Case 1: Record is spanned, memcpy from this block and the next block to form a full record
+                    // Copy first part of the record (On this block)
+                    // Calculate remaining size of the record
+                    int sizeLeft = (this->blockSize - j * 4);
+                    int spillOverSize = sizeof(Record) - sizeLeft;
+                    // Copy the first part of the record (On this block)
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeLeft);
+                    // Copy the second part of the record (On the next block)
+                    memcpy(reinterpret_cast<char*>(&r) + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+                    //memcpy(&r + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+
+                    // Skip to the next block and ignore spillOverSize bytes
+                    i += 1;
+                    j = spillOverSize / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                } else {
+                    // Case 2: Record is not spanned, just read normally
+                    // Copy the bytes to a Record object
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
+
+                    // Skip to the next record
+                    j += sizeof(Record) / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                }
+
+                // Check if record key (numvotes) = input key
+                if (r.numVotes == numVotesKey){
+                    (*ptrArr).push_back(reinterpret_cast<int *const>(&r));
+                }
+            }
+        }
+
+        if (recordExists){
+            blockCounter++;
+        }
+    }
+
+    // End timing
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
+    // Print
+    cout << "Data blocks accessed (Brute force/Linear scan): " << blockCounter << endl;
+    cout << "Running time (Brute force/Linear scan): " << duration << " milliseconds." << endl;
+
+    return ptrArr;
+}
+
+
+// Sequentially read the records from the memory
+vector<int*>* DiskManager::searchAllRecordsRange(int numVotesStartRange, int numVotesEndRange) {
+    // Start timing
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    // Vector
+    vector<int*> *ptrArr = new vector<int*>;
+    int blockCounter=0;
+    bool recordExists;
+
+    Record r;
+    // Loop through blocks t// Block counterhat have at least 1 record
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+        recordExists = false;
+        // Loop through the block
+        for (int j = 0; j < this->blockSize / 4; j++) {
+            // If the byte is not -1, it is the start of a record
+            if (*(this->getBlockAddress(i) + j) != -1) {
+                recordExists = true;
+                // Read record
+                if (j * 4 + sizeof(Record) > this->blockSize) {
+                    // Case 1: Record is spanned, memcpy from this block and the next block to form a full record
+                    // Copy first part of the record (On this block)
+                    // Calculate remaining size of the record
+                    int sizeLeft = (this->blockSize - j * 4);
+                    int spillOverSize = sizeof(Record) - sizeLeft;
+                    // Copy the first part of the record (On this block)
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeLeft);
+                    // Copy the second part of the record (On the next block)
+                    memcpy(reinterpret_cast<char*>(&r) + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+                    //memcpy(&r + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+
+                    // Skip to the next block and ignore spillOverSize bytes
+                    i += 1;
+                    j = spillOverSize / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                } else {
+                    // Case 2: Record is not spanned, just read normally
+                    // Copy the bytes to a Record object
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
+
+                    // Skip to the next record
+                    j += sizeof(Record) / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                }
+
+                // Check if record key (numvotes) = input key
+                if (numVotesStartRange < r.numVotes < numVotesEndRange){
+                    (*ptrArr).push_back(reinterpret_cast<int *const>(&r));
+                }
+            }
+        }
+
+        if (recordExists){
+            blockCounter++;
+        }
+    }
+
+    // End timing
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
+    // Print
+    cout << "Data blocks accessed (Brute force/Linear scan): " << blockCounter << endl;
+    cout << "Running time (Brute force/Linear scan): " << duration << " milliseconds." << endl;
+
+    return ptrArr;
+}
+
+// Sequentially read the records from the memory
+void DiskManager::searchAllRecordsDeletion(int numVotesKey) {
+    // Start timing
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    int blockCounter=0;
+    bool recordExists;
+
+    Record r;
+    for (int i = 0; i < this->totalNumBlocks; i++) {
+        recordExists = false;
+        // Loop through the block
+        for (int j = 0; j < this->blockSize / 4; j++) {
+            // If the byte is not -1, it is the start of a record
+            if (*(this->getBlockAddress(i) + j) != -1) {
+                recordExists = true;
+                // Read record
+                if (j * 4 + sizeof(Record) > this->blockSize) {
+                    // Case 1: Record is spanned, memcpy from this block and the next block to form a full record
+                    // Copy first part of the record (On this block)
+                    // Calculate remaining size of the record
+                    int sizeLeft = (this->blockSize - j * 4);
+                    int spillOverSize = sizeof(Record) - sizeLeft;
+                    // Copy the first part of the record (On this block)
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeLeft);
+                    // Copy the second part of the record (On the next block)
+                    memcpy(reinterpret_cast<char*>(&r) + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+                    //memcpy(&r + sizeLeft, this->getBlockAddress(i + 1), spillOverSize);
+
+                    // Check if record key (numvotes) = input key
+                    if (r.numVotes == numVotesKey){
+                        // Set mem to -1 (Blank state)
+                        // Memset size on curr block
+                        memset(this->getBlockAddress(i) + j, -1, sizeLeft);
+                        // Memset on next spillover block
+                        memset(this->getBlockAddress(i + 1), -1, spillOverSize);
+                    }
+
+                    // Skip to the next block and ignore spillOverSize bytes
+                    i += 1;
+                    j = spillOverSize / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                } else {
+                    // Case 2: Record is not spanned, just read normally
+                    // Copy the bytes to a Record object
+                    memcpy(&r, this->getBlockAddress(i) + j, sizeof(Record));
+
+                    // Check if record key (numvotes) = input key
+                    if (r.numVotes == numVotesKey){
+                        // Set mem to -1 (Blank state)
+                        memset(this->getBlockAddress(i) + j, -1, sizeof(Record));
+                    }
+
+                    // Skip to the next record
+                    j += sizeof(Record) / 4 - 1;  // Subtract 1 to offset the automatic increment in the loop
+                }
+            }
+        }
+
+        if (recordExists){
+            blockCounter++;
+        }
+    }
+
+    // End timing
+    auto endTime = std::chrono::high_resolution_clock::now();
+    // Calculate the elapsed time
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
+    // Print
+    cout << "Data blocks accessed (Brute force/Linear scan): " << blockCounter << endl;
+    cout << "Running time of Deletion (Brute force/Linear scan): " << duration << " milliseconds." << endl;
+}
+
+
+// Method to get record given the address
+Record DiskManager::getRecord(int* recordAddress) {
+    Record r;
+    int blockId = getBlockId(recordAddress);
+    int offset = (recordAddress - getBlockAddress(blockId)) * 4;  // Offset in bytes
+
+    // Check if the record is spanned across blocks
+    if (offset + sizeof(Record) > blockSize) {
+        // Case 1: Record is spanned
+        int sizeLeft = blockSize - offset;
+        int spillOverSize = sizeof(Record) - sizeLeft;
+
+        // Copy the first part of the record
+        memcpy(&r, recordAddress, sizeLeft);
+
+        // Copy the second part of the record from the next block
+        memcpy(reinterpret_cast<char*>(&r) + sizeLeft, getBlockAddress(blockId + 1), spillOverSize);
+    } else {
+        // Case 2: Record is not spanned
+        memcpy(&r, recordAddress, sizeof(Record));
+    }
+
+    return r;
 }

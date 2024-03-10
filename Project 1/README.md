@@ -1,6 +1,11 @@
 # SC3020-Project-1
 
 ## Overview
+Files and Data for Project 1
+
+## How to Run
+Download all the files.
+Run main.exe in CMD or PowerShell.
 
 ## Contributions
 This project was built by the following:

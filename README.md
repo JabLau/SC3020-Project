@@ -9,3 +9,7 @@ This project was built by the following:
 2. Darren Chew (https://github.com/DarrenCheww)
 3. Ivan Lai (https://github.com/IvanL010)
 4. Jabez Lau (https://github.com/JabLau)
+
+## Installation guide:
+Download the folder and run the main.exe file.
+

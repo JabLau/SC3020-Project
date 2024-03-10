@@ -365,6 +365,10 @@ vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
 Node* BPTree::findNodeWithValue(int value, int* indexNodesAccessed) {
     Node* currNode = this->rootNode;
     bool foundNextNode;
+    if (indexNodesAccessed == nullptr) {
+        indexNodesAccessed = new int();
+        (*indexNodesAccessed) = 1;
+    }
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
@@ -532,7 +536,7 @@ bool BPTree::deleteNodes(int value) {
     Node* parentNode;
     Node* leftNode;
     Node* rightNode;
-    currNode = findNodeWithValue(value, false);
+    currNode = findNodeWithValue(value, nullptr);
 
     if (currNode == nullptr) {
         return false;

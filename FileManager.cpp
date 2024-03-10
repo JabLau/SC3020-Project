@@ -25,7 +25,7 @@ vector<string> FileManager::strSplitByDelim(const string &s, char delim) {
 
 vector<tempStruct> FileManager::load_data(DiskManager* disk) {
     // Load data.tsv file into
-    ifstream infile("../data.tsv");
+    ifstream infile("data.tsv");
     //define array here.
     std::vector<tempStruct> addr_NumVotes_list;
     // Line-based parsing, using string streams
@@ -65,9 +65,9 @@ vector<tempStruct> FileManager::load_data(DiskManager* disk) {
 
         // Increment line number
         line_num++;
-//        if (line_num % 1000 == 0) {
-//            cout << "\r" <<  line_num;
-//        }
+       if (line_num % 1000 == 0) {
+           cout << "\r" <<  line_num;
+       }
 
        // Break after 10 lines
     //    if (line_num > 1500) {

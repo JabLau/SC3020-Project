@@ -326,7 +326,9 @@ void BPTree::ensureNodeValid(Node* prevNode, Node* currNode) {
 //}
 
 vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
-    Node *currNode = this->findNodeWithValue(value, printAccessed);
+    int *indexNodesAccessed = new int();
+    (*indexNodesAccessed) = 1;
+    Node *currNode = this->findNodeWithValue(value,indexNodesAccessed);
     if (currNode == nullptr) {
         //cout << "Cannot find node with value" << endl;
         return nullptr;
@@ -340,6 +342,9 @@ vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
     do {
         for (int i=0;i < currNode->currKeyCount;i++) {
             if (currNode->keys[i] == value) {
+                if (printAccessed) {
+                    cout << "B+ Tree Index nodes Accessed:" << (*indexNodesAccessed) << endl;
+                }
                 return ((vector<int*>*)currNode->pointers[i]);
             }else if (currNode->keys[i] > value) {
                 overshot = true;
@@ -351,15 +356,15 @@ vector<int*>* BPTree::findByValue(int value, bool printAccessed) {
             break;
         }
         currNode = (Node*) currNode->getNextNodePointer();
+        (*indexNodesAccessed)++;
     }while (currNode != nullptr);
 
     return nullptr;
 }
 
-Node* BPTree::findNodeWithValue(int value, bool printAccessed) {
+Node* BPTree::findNodeWithValue(int value, int* indexNodesAccessed) {
     Node* currNode = this->rootNode;
     bool foundNextNode;
-    int indexNodesAccessed = 1; // Do We count Root node as Index Node Accessed?
     while (currNode->leafNode == false) {
         // Not leaf node
         foundNextNode = false;
@@ -376,7 +381,7 @@ Node* BPTree::findNodeWithValue(int value, bool printAccessed) {
             // TODO: Check if there is a pointer here? But should have right?
             currNode = (Node*) currNode->pointers[currNode->currKeyCount];
         }
-        indexNodesAccessed++;
+        (*indexNodesAccessed)++;
     }
 
     // Value < Smallest value in B+Tree, cannot find
@@ -404,6 +409,7 @@ Node* BPTree::findNodeWithValue(int value, bool printAccessed) {
             break; // Overshot liao, means cannot find
         }
         currNode = (Node*) currNode->getNextNodePointer(); // Go to next node
+        (*indexNodesAccessed)++;
     }while (currNode != nullptr);
     // Terminate if found the value or
     // If reach end of line without finding value
@@ -411,9 +417,6 @@ Node* BPTree::findNodeWithValue(int value, bool printAccessed) {
     // This the only node and does not have the value
 
     if (foundValue) {
-        if (printAccessed) {
-            cout << "B+ Tree Index nodes Accessed:" << indexNodesAccessed << endl;
-        }
         // Found value in this node, return it
         return currNode;
     }

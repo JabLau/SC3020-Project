@@ -26,7 +26,7 @@ public:
     void printTree();
     void returnNodeCount();
 
-    Node* findNodeWithValue(int value,bool);
+    Node* findNodeWithValue(int value, int*);
     Node* findStartingNodeForRange(int value,int*);
     vector<vector<int*>>* findByRange(int, int,bool);
     vector<int*>* findByValue(int,bool);

@@ -3,9 +3,9 @@
 ## Overview
 Files and Data for Project 1
 
-## How to Run
-Download all the files.
-Run main.exe in CMD or PowerShell.
+## Steps to Run
+1. Download all the files.
+2. Run main.exe in CMD or PowerShell.
 
 ## Contributions
 This project was built by the following:
